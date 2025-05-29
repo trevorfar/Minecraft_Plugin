@@ -1,0 +1,4 @@
+name: runic_overlord
+version: '1.0-SNAPSHOT'
+main: com.trevorfarias.runic_overlord.Runic_overlord
+api-version: '1.21'
