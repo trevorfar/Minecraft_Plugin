@@ -1,0 +1,60 @@
+name: PickleEater41
+display-name: PickleEater41
+account: 0.0
+bank: ''
+bank-rank: default
+settings:
+  board: true
+  pvp: true
+  muted: false
+  frozen: false
+  jailed: false
+  banned: false
+  ban-expire: 0
+  vanished: false
+locations:
+  join:
+    world: world
+    x: -84.56470637727533
+    y: 68.88985292092202
+    z: 308.5772952675235
+    yaw: -145.0
+    pitch: 26.0
+  quit:
+    world: world
+    x: -20.00464905401735
+    y: 75.99373468926926
+    z: 248.2445221438408
+    yaw: 87.40784
+    pitch: 18.34992
+tasks: {}
+teleportenabled: true
+teleportauto: false
+godmode: true
+muted: false
+jailed: false
+ip-address: 127.0.0.1
+afk: false
+socialspy: false
+npc: false
+powertoolsenabled: true
+accepting-pay: true
+baltop-exempt: false
+timestamps:
+  lastteleport: 0
+  lastheal: 0
+  mute: 0
+  jail: 0
+  onlinejail: 0
+  logout: 1748568570865
+  login: 1748568535260
+money: '0'
+last-account-name: PickleEater41
+logoutlocation:
+  world: cc9678e7-5e82-487d-8930-bccf3821297f
+  world-name: world
+  x: -73.98353367716321
+  y: 74.0
+  z: -51.20373533114045
+  yaw: -162.9934539794922
+  pitch: 28.10397720336914
