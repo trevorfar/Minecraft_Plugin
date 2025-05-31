@@ -51,9 +51,10 @@ object RuneFactory {
         modifiers: List<RuneModifier>,
         lore: List<String>,
         applyModifier: (ItemStack) -> ItemStack,
-        removeModifier: (ItemStack) -> ItemStack
+        removeModifier: (ItemStack) -> ItemStack,
+        validSlots: List<EquipmentSlot> = listOf(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET), // default: all
     ) {
-        runes[id] = RuneSpec(id, displayName, tier, material, modifiers, lore, applyModifier, removeModifier)
+        runes[id] = RuneSpec(id, displayName, tier, material, modifiers, validSlots, lore, applyModifier, removeModifier)
     }
 
 
@@ -71,6 +72,7 @@ object RuneFactory {
                     slot = EquipmentSlot.FEET
                 )
             ),
+            validSlots = listOf(EquipmentSlot.FEET),
             lore = listOf("§7Increases speed slightly"),
             applyModifier = applier(1, "swiftness1"),
             removeModifier = remover("swiftness1")
@@ -84,11 +86,12 @@ object RuneFactory {
             modifiers = listOf(
                 RuneModifier(
                     attribute = Attribute.MOVEMENT_SPEED,
-                    amount = 0.030, // base amount per tier
+                    amount = 0.015, // base amount per tier
                     operation = AttributeModifier.Operation.ADD_NUMBER,
                     slot = EquipmentSlot.FEET
                 )
             ),
+            validSlots = listOf(EquipmentSlot.FEET),
             lore = listOf("§7Increases speed slightly"),
             applyModifier = applier(2, "swiftness2"),
             removeModifier = remover("swiftness2")
@@ -102,11 +105,12 @@ object RuneFactory {
             modifiers = listOf(
                 RuneModifier(
                     attribute = Attribute.MOVEMENT_SPEED,
-                    amount = 0.045, // base amount per tier
+                    amount = 0.015, // base amount per tier
                     operation = AttributeModifier.Operation.ADD_NUMBER,
                     slot = EquipmentSlot.FEET
                 )
             ),
+            validSlots = listOf(EquipmentSlot.FEET),
             lore = listOf("§7Increases speed slightly"),
             applyModifier = applier(3, "swiftness3"),
             removeModifier = remover("swiftness3")

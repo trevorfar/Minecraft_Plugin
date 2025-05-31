@@ -94,7 +94,7 @@ object RuneRemoverGuiListener : Listener {
             }
         }
 
-        completedRemovals.add(player.uniqueId) // ✅ Mark as completed
+        completedRemovals.add(player.uniqueId)
         player.closeInventory()
         player.sendMessage("§aRemoved ${targetRune.displayName} from your armor.")
     }
@@ -105,7 +105,7 @@ object RuneRemoverGuiListener : Listener {
             val player = event.player as? Player ?: return
             val uuid = player.uniqueId
 
-            if (!completedRemovals.remove(uuid)) { // ✅ Only refund if not completed
+            if (!completedRemovals.remove(uuid)) {
                 PendingVoucherUse.map.remove(player)?.let { voucher ->
                     player.inventory.addItem(voucher)
                 }
@@ -121,6 +121,6 @@ object RuneRemoverGuiListener : Listener {
             event.player.inventory.addItem(voucher)
         }
         PendingRuneRemovals.map.remove(event.player)
-        completedRemovals.remove(event.player.uniqueId) // ✅ Clean up
+        completedRemovals.remove(event.player.uniqueId)
     }
 }

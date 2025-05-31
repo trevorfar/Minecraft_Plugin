@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
@@ -33,6 +34,8 @@ class RuneApplyListener : Listener {
         var armorItem = e.currentItem ?: return
         if (armorItem.type.isAir || cursor.type.isAir) return
 
+
+
         // Handle applying a rune
         val runeSpec = RuneFactory.getRuneSpecFromItem(cursor) ?: return
         val runeId = runeSpec.id
@@ -43,6 +46,22 @@ class RuneApplyListener : Listener {
             !armorItem.type.name.contains("LEGGINGS") &&
             !armorItem.type.name.contains("BOOTS")
         ) return
+
+        val equipmentSlot = when {
+            armorItem.type.name.endsWith("_HELMET") -> EquipmentSlot.HEAD
+            armorItem.type.name.endsWith("_CHESTPLATE") -> EquipmentSlot.CHEST
+            armorItem.type.name.endsWith("_LEGGINGS") -> EquipmentSlot.LEGS
+            armorItem.type.name.endsWith("_BOOTS") -> EquipmentSlot.FEET
+            else -> null
+        }
+
+
+
+        if (equipmentSlot == null || equipmentSlot !in runeSpec.validSlots) {
+            player.sendMessage("§cThis rune cannot be applied to that armor piece.")
+            return
+        }
+
 
         val meta = armorItem.itemMeta ?: return
         val pdc = meta.persistentDataContainer

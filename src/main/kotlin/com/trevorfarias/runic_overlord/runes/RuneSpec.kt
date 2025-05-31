@@ -19,6 +19,7 @@ data class RuneSpec(
     val tier: Int = 1,
     val material: Material,
     val modifiers: List<RuneModifier>,
+    val validSlots: List<EquipmentSlot> = listOf(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET), // default: all
     val lore: List<String>,
     val applyModifier: (ItemStack) -> ItemStack,
     val removeModifier: (ItemStack) -> ItemStack
