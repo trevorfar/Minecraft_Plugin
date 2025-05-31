@@ -14,6 +14,14 @@ import org.bukkit.persistence.PersistentDataType
 
 class RuneApplyListener : Listener {
 
+    object PendingVoucherUse {
+        val map: MutableMap<Player, ItemStack> = mutableMapOf()
+    }
+
+    object PendingRuneRemovals {
+        val map = mutableMapOf<Player, ItemStack>()
+    }
+
     @EventHandler
     fun onRuneApply(e: InventoryClickEvent) {
         val player = e.whoClicked as? Player ?: return
@@ -25,25 +33,6 @@ class RuneApplyListener : Listener {
         var armorItem = e.currentItem ?: return
         if (armorItem.type.isAir || cursor.type.isAir) return
 
-        val cursorMeta = cursor.itemMeta ?: return
-
-        // Handle rune remover tool
-        if (cursorMeta.persistentDataContainer.has(Constants.IS_RUNE_REMOVER, PersistentDataType.BYTE)) {
-            val armorMeta = armorItem.itemMeta ?: return
-            val pdc = armorMeta.persistentDataContainer
-            val runeIds = pdc.get(Constants.RUNE_IDS_KEY, PersistentDataType.STRING)
-                ?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
-
-            if (runeIds.isEmpty()) {
-                player.sendMessage("§eThis armor has no runes.")
-                return
-            }
-
-            openRuneRemovalGUI(player, armorItem.clone(), runeIds)
-            e.isCancelled = true
-            return
-        }
-
         // Handle applying a rune
         val runeSpec = RuneFactory.getRuneSpecFromItem(cursor) ?: return
         val runeId = runeSpec.id
@@ -52,7 +41,8 @@ class RuneApplyListener : Listener {
         if (!armorItem.type.name.contains("HELMET") &&
             !armorItem.type.name.contains("CHESTPLATE") &&
             !armorItem.type.name.contains("LEGGINGS") &&
-            !armorItem.type.name.contains("BOOTS")) return
+            !armorItem.type.name.contains("BOOTS")
+        ) return
 
         val meta = armorItem.itemMeta ?: return
         val pdc = meta.persistentDataContainer
@@ -112,7 +102,11 @@ class RuneApplyListener : Listener {
 
         updatedMeta.lore = cleanedLore
         updatedMeta.persistentDataContainer.set(Constants.RUNE_SLOT_KEY, PersistentDataType.INTEGER, runeList.size)
-        updatedMeta.persistentDataContainer.set(Constants.RUNE_IDS_KEY, PersistentDataType.STRING, runeList.joinToString(","))
+        updatedMeta.persistentDataContainer.set(
+            Constants.RUNE_IDS_KEY,
+            PersistentDataType.STRING,
+            runeList.joinToString(",")
+        )
 
         updatedArmor.itemMeta = updatedMeta
         e.currentItem = updatedArmor
@@ -122,20 +116,4 @@ class RuneApplyListener : Listener {
         e.isCancelled = true
     }
 
-    private fun openRuneRemovalGUI(player: Player, armor: ItemStack, runeIds: List<String>) {
-        val size = ((runeIds.size + 8) / 9) * 9 // Round up to nearest multiple of 9
-        val gui = Bukkit.createInventory(null, size, "§cRemove a Rune")
-
-        runeIds.forEachIndexed { i, id ->
-            val spec = RuneFactory.getRuneSpecById(id) ?: return@forEachIndexed
-            val item = ItemStack(spec.material)
-            val meta = item.itemMeta ?: return@forEachIndexed
-            meta.setDisplayName("§cRemove: ${spec.displayName}")
-            item.itemMeta = meta
-            gui.setItem(i, item)
-        }
-
-        PendingRuneRemovals.map[player] = armor
-        player.openInventory(gui)
-    }
 }

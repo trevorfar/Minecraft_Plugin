@@ -1,19 +1,49 @@
 package com.trevorfarias.runic_overlord.voucher
 
 import com.trevorfarias.runic_overlord.RunicOverlord
+import com.trevorfarias.runic_overlord.runes.RuneApplyListener
+import com.trevorfarias.runic_overlord.runes.RuneFactory
+import com.trevorfarias.runic_overlord.util.Constants
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
+object RuneGUI {
+    fun openRuneRemovalGUI(player: Player, armor: ItemStack, runeIds: List<String>) {
+        val size = ((runeIds.size + 8) / 9) * 9
+        val gui = Bukkit.createInventory(null, size, "§cRemove a Rune")
+
+        runeIds.forEachIndexed { i, id ->
+            val spec = RuneFactory.getRuneSpecById(id) ?: return@forEachIndexed
+            val item = ItemStack(spec.material)
+            val meta = item.itemMeta ?: return@forEachIndexed
+            meta.setDisplayName("§cRemove: ${spec.displayName}")
+            item.itemMeta = meta
+            gui.setItem(i, item)
+        }
+
+        RuneApplyListener.PendingRuneRemovals.map[player] = armor
+        Bukkit.getScheduler().runTask(RunicOverlord.instance, Runnable {
+            player.setItemOnCursor(ItemStack(Material.AIR))
+            player.openInventory(gui)
+        })
+    }
+}
+
 data class VoucherSpec(
     val id: String,
     val displayName: String,
+    val rightClickable: Boolean = true,
     val lore: List<String>,
     val material: Material,
-    val reward: (player: org.bukkit.entity.Player) -> Unit
+    val reward: ((player: Player) -> Unit)? = null,
+    val customAction: ((player: Player, target: ItemStack, cursor: ItemStack, event: InventoryClickEvent) -> Boolean)? = null
 )
 
 object VoucherFactory {
@@ -55,10 +85,32 @@ object VoucherFactory {
             displayName = "§cRune Remover",
             lore = listOf("§7Drag onto an item to choose a rune to remove"),
             material = Material.BRUSH,
-            reward = { player ->
-                player.sendMessage("Rune removed!")
+            rightClickable = false,
+            customAction = { player, armorItem, cursorItem, event ->
+                val cursorMeta = cursorItem.itemMeta ?: return@VoucherSpec false
+                if (!cursorMeta.persistentDataContainer.has(Constants.IS_RUNE_REMOVER, PersistentDataType.BYTE)) return@VoucherSpec false
+
+                val armorMeta = armorItem.itemMeta ?: return@VoucherSpec false
+                val pdc = armorMeta.persistentDataContainer
+                val runeIds = pdc.get(Constants.RUNE_IDS_KEY, PersistentDataType.STRING)
+                    ?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+
+                if (runeIds.isEmpty()) {
+                    player.sendMessage("§eThis armor has no runes.")
+                    return@VoucherSpec true
+                }
+
+                RuneApplyListener.PendingVoucherUse.map[player] = cursorItem.clone()
+                RuneApplyListener.PendingRuneRemovals.map[player] = armorItem.clone()
+                RuneGUI.openRuneRemovalGUI(player, armorItem.clone(), runeIds)
+                event.isCancelled = true
+                return@VoucherSpec true
             }
+
         )
+
+        //FIXES:
+        //Refund remover, stop removing other item in inventory
 
     )
 

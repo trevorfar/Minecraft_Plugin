@@ -127,7 +127,7 @@ object RuneFactory {
                 val scaledAmount = baseMod.amount * tier
                 val newModifier = AttributeModifier(
                     uuid,
-                    "${runeSpec.id}_tier$tier",
+                    "${runeSpec.id}$tier",
                     scaledAmount,
                     baseMod.operation,
                     baseMod.slot
@@ -153,5 +153,8 @@ object RuneFactory {
             itemMeta = meta
         }
     }
+
+
+
 
 }

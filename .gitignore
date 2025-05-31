@@ -36,7 +36,7 @@ hs_err_pid*
 
 # KDE directory preferences
 .directory
-
+.console_history
 # Linux trash folder which might appear on any partition or disk
 .Trash-*
 

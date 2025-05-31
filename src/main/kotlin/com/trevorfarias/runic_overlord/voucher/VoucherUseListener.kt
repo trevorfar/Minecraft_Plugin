@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.event.block.Action
 
 class VoucherUseListener : Listener {
 
@@ -14,10 +15,14 @@ class VoucherUseListener : Listener {
         val item = event.item ?: return
         val spec = VoucherFactory.matchVoucher(item) ?: return
 
-        event.isCancelled = true
-        consumeOneItem(player, item)
+        val action = event.action
+        if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) return
 
-        spec.reward(player)
+        if (action.name.contains("RIGHT") && !spec.rightClickable) return
+
+        event.isCancelled = true
+        //consumeOneItem(player, item)
+        spec.reward?.let { it(player) }
         player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f)
     }
 
