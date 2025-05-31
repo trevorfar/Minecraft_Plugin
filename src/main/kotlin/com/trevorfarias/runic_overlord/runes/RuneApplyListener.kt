@@ -38,6 +38,7 @@ class RuneApplyListener : Listener {
 
         // Handle applying a rune
         val runeSpec = RuneFactory.getRuneSpecFromItem(cursor) ?: return
+
         val runeId = runeSpec.id
         val runeIdBase = runeId.replace(Regex("\\d+\$"), "")
 

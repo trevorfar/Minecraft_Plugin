@@ -116,6 +116,62 @@ object RuneFactory {
             removeModifier = remover("swiftness3")
         )
 
+        register(
+            id = "vitality1",
+            displayName = "§bRune of Vitality I",
+            tier = 1,
+            material = Material.RESIN_CLUMP,
+            modifiers = listOf(
+                RuneModifier(
+                    attribute = Attribute.MAX_HEALTH,
+                    amount = 2.0, // base amount per tier
+                    operation = AttributeModifier.Operation.ADD_NUMBER,
+                    slot = EquipmentSlot.CHEST
+                )
+            ),
+            validSlots = listOf(EquipmentSlot.CHEST),
+            lore = listOf("§7Increases health slightly"),
+            applyModifier = applier(1, "vitality1"),
+            removeModifier = remover("vitality1")
+        )
+
+        register(
+            id = "vitality2",
+            displayName = "§bRune of Vitality II",
+            tier = 2,
+            material = Material.RESIN_CLUMP,
+            modifiers = listOf(
+                RuneModifier(
+                    attribute = Attribute.MAX_HEALTH,
+                    amount = 2.0, // base amount per tier
+                    operation = AttributeModifier.Operation.ADD_NUMBER,
+                    slot = EquipmentSlot.CHEST
+                )
+            ),
+            validSlots = listOf(EquipmentSlot.CHEST),
+            lore = listOf("§7Increases health moderately"),
+            applyModifier = applier(2, "vitality2"),
+            removeModifier = remover("vitality2")
+        )
+
+        register(
+            id = "vitality3",
+            displayName = "§bRune of Vitality III",
+            tier = 3,
+            material = Material.RESIN_CLUMP,
+            modifiers = listOf(
+                RuneModifier(
+                    attribute = Attribute.MAX_HEALTH,
+                    amount = 2.0, // base amount per tier
+                    operation = AttributeModifier.Operation.ADD_NUMBER,
+                    slot = EquipmentSlot.CHEST
+                )
+            ),
+            validSlots = listOf(EquipmentSlot.CHEST),
+            lore = listOf("§7Increases health significantly"),
+            applyModifier = applier(3, "vitality3"),
+            removeModifier = remover("vitality3")
+        )
     }
 
     private fun applier(tier: Int, id: String): (ItemStack) -> ItemStack = { armor ->
