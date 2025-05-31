@@ -1,4 +1,10 @@
-name: runic_overlord
+name: RunicOverlord
 version: '1.0-SNAPSHOT'
-main: com.trevorfarias.runic_overlord.Runic_overlord
+main: com.trevorfarias.runic_overlord.RunicOverlord
 api-version: '1.21'
+commands:
+  givecustom:
+    description: Gives a custom item
+    usage: /givecustom <voucher|health|scroll>
+    permission: runicoverlord.admin
+    permission-message: §cYou must be an admin to use this command.
