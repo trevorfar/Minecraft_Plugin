@@ -4,6 +4,7 @@ import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
+import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import java.util.*
@@ -45,6 +46,20 @@ object RuneFactory {
             spec.displayName == meta.displayName && spec.lore == meta.lore && item.type == spec.material
         }?.key
     }
+
+    fun getRunesFromEquipment(player: Player): List<RuneSpec> {
+        val equipment = player.equipment ?: return emptyList()
+
+        val items = listOfNotNull(
+            equipment.helmet,
+            equipment.chestplate,
+            equipment.leggings,
+            equipment.boots
+        )
+
+        return items.mapNotNull { getRuneSpecFromItem(it) }
+    }
+
 
     fun createRune(id: String): ItemStack? {
         val rune = runes[id] ?: return null
@@ -92,6 +107,10 @@ object RuneFactory {
         RuneDef("luck1", "Luck", 1, Material.KELP, Attribute.LUCK, 1.5, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases luck slightly"),
         RuneDef("luck2", "Luck", 2, Material.KELP, Attribute.LUCK, 1.5, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases luck moderately"),
         RuneDef("luck3", "Luck", 3, Material.KELP, Attribute.LUCK, 1.5, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases luck significantly"),
+        RuneDef("gravity1", "Gravity", 1, Material.KELP, Attribute.GRAVITY, 0.1, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases gravity slightly"),
+        RuneDef("gravity2", "Gravity", 2, Material.KELP, Attribute.GRAVITY, 0.2, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases gravity moderately"),
+        RuneDef("gravity3", "Gravity", 3, Material.KELP, Attribute.GRAVITY, 0.3, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases gravity significantly"),
+        RuneDef("blinkstep1", "Blinkstep", 1, Material.CHORUS_FRUIT, Attribute.LUCK, 0.0, listOf(EquipmentSlot.FEET), "§7Shift + Right click to teleport forward"),
 
         )
 

@@ -2,9 +2,7 @@ package com.trevorfarias.runic_overlord
 
 import com.trevorfarias.runic_overlord.commands.CustomItemCommand
 import com.trevorfarias.runic_overlord.listeners.SandBreakListener
-import com.trevorfarias.runic_overlord.runes.RuneApplyListener
-import com.trevorfarias.runic_overlord.runes.RuneEffectListener
-import com.trevorfarias.runic_overlord.runes.RuneRemoverGuiListener
+import com.trevorfarias.runic_overlord.runes.*
 import com.trevorfarias.runic_overlord.voucher.VoucherUseListener
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
@@ -20,7 +18,9 @@ object PluginManager {
         register(plugin, RuneApplyListener())
         register(plugin, RuneEffectListener())
         register(plugin, RuneRemoverGuiListener)
-        register(plugin, com.trevorfarias.runic_overlord.runes.RuneLootInjector)
+        register(plugin, RuneProtectionListener())
+        register(plugin, RuneLootInjector)
+        register(plugin, BlinkstepListener())
 
         plugin.getCommand("givecustom")?.setExecutor(CustomItemCommand())
     }
