@@ -98,23 +98,43 @@ class RuneApplyListener : Listener {
         val modifiedMeta = modifiedArmor.itemMeta ?: return
         val oldLore = modifiedMeta.lore ?: emptyList()
 
-        runeList.add(runeSpec.id)
+        if (runeSpec.id !in runeList) {
+            runeList.add(runeSpec.id)
+        }
 
         val cleanedLore = oldLore.filterNot {
-            it.startsWith("§bApplied: ") || it.startsWith("§7Runes:")
+            it.startsWith("§bApplied: ") ||
+                    it.startsWith("§7Runes:") ||
+                    it.matches(Regex("§[0-9a-f]• Rune of .*")) ||
+                    it.matches(Regex("§[0-9a-f]◆+")) ||
+                    it.matches(Regex("§[0-9a-fA-F]• .*"))
+
         }.toMutableList()
 
-        val runeSymbols = runeList.mapNotNull { id ->
-            val spec = RuneFactory.getRuneSpecById(id) ?: return@mapNotNull null
-            when (spec.tier) {
-                1 -> "§f◆"
-                2 -> "§b◆"
-                3 -> "§3◆"
-                else -> "§7◆"
+
+
+        val runeData = runeList
+            .distinct()
+            .mapNotNull { id ->
+                val spec = RuneFactory.getRuneSpecById(id) ?: return@mapNotNull null
+                val symbol = when (spec.tier) {
+                    1 -> "§f◆" to "§f"
+                    2 -> "§b◆" to "§b"
+                    3 -> "§3◆" to "§3"
+                    else -> "§7◆" to "§7"
+                }
+                Triple(symbol.first, symbol.second, spec.displayName)
+            }
+
+        val visualBar = runeData.joinToString("") { it.first } + "§8" + "◇".repeat(Constants.MAX_RUNES - runeData.size)
+        cleanedLore.add("§7Runes: $visualBar")
+        val uniqueDisplayLore = mutableSetOf<String>()
+
+        runeData.forEach { (_, color, name) ->
+            if (uniqueDisplayLore.add(name)) {
+                cleanedLore.add("$color• $name")
             }
         }
-        val visualBar = runeSymbols.joinToString("") + "§8" + "◇".repeat(Constants.MAX_RUNES - runeSymbols.size)
-        cleanedLore.add("§7Runes: $visualBar")
         modifiedMeta.lore = cleanedLore
 
         val updatedArmor = runeSpec.applyModifier(modifiedArmor)

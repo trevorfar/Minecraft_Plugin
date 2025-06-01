@@ -15,12 +15,12 @@ object PluginManager {
     fun initialize(plugin: RunicOverlord) {
         plugin.logger.info("Initializing Runic Overlord systems...")
 
-        register(plugin, SandBreakListener(plugin))
+        register(plugin, SandBreakListener())
         register(plugin, VoucherUseListener())
         register(plugin, RuneApplyListener())
         register(plugin, RuneEffectListener())
         register(plugin, RuneRemoverGuiListener)
-
+        register(plugin, com.trevorfarias.runic_overlord.runes.RuneLootInjector)
 
         plugin.getCommand("givecustom")?.setExecutor(CustomItemCommand())
     }

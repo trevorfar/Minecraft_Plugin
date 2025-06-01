@@ -9,11 +9,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import kotlin.random.Random
 
-class SandBreakListener(private val plugin: RunicOverlord) : Listener {
+class SandBreakListener : Listener {
 
     @EventHandler
     fun onSandBreak(event: BlockBreakEvent) {
-        if (event.block.type != Material.SAND) return
+        if (event.block.type != Material.BEDROCK) return
         if (Random.nextDouble() >= 0.5) return
 
         val player = event.player

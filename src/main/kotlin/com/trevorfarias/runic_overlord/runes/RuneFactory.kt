@@ -1,14 +1,29 @@
 package com.trevorfarias.runic_overlord.runes
 
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import java.util.*
 
+data class RuneDef(
+    val id: String,
+    val name: String,
+    val tier: Int,
+    val material: Material,
+    val attribute: Attribute,
+    val amount: Double,
+    val slot: List<EquipmentSlot>,
+    val loreText: String
+)
+
+
+
 object RuneFactory {
     private val runes = mutableMapOf<String, RuneSpec>()
+
 
     fun getRuneSpecById(id: String): RuneSpec? = runes[id]
 
@@ -57,164 +72,93 @@ object RuneFactory {
         runes[id] = RuneSpec(id, displayName, tier, material, modifiers, validSlots, lore, applyModifier, removeModifier)
     }
 
+    private fun toRoman(tier: Int): String = when (tier) {
+        1 -> "I"
+        2 -> "II"
+        3 -> "III"
+        4 -> "IV"
+        5 -> "V"
+        else -> tier.toString()
+    }
+
+
+    private val predefinedRunes = listOf(
+        RuneDef("swiftness1", "Swiftness", 1, Material.FEATHER, Attribute.MOVEMENT_SPEED, 0.015, listOf(EquipmentSlot.FEET), "§7Increases speed slightly"),
+        RuneDef("swiftness2", "Swiftness", 2, Material.FEATHER, Attribute.MOVEMENT_SPEED, 0.015, listOf(EquipmentSlot.FEET), "§7Increases speed slightly"),
+        RuneDef("swiftness3", "Swiftness", 3, Material.FEATHER, Attribute.MOVEMENT_SPEED, 0.015, listOf(EquipmentSlot.FEET), "§7Increases speed slightly"),
+        RuneDef("vitality1", "Vitality", 1, Material.RESIN_CLUMP, Attribute.MAX_HEALTH, 2.0, listOf(EquipmentSlot.CHEST), "§7Increases health slightly"),
+        RuneDef("vitality2", "Vitality", 2, Material.RESIN_CLUMP, Attribute.MAX_HEALTH, 2.0, listOf(EquipmentSlot.CHEST), "§7Increases health moderately"),
+        RuneDef("vitality3", "Vitality", 3, Material.RESIN_CLUMP, Attribute.MAX_HEALTH, 2.0, listOf(EquipmentSlot.CHEST), "§7Increases health significantly"),
+        RuneDef("luck1", "Luck", 1, Material.KELP, Attribute.LUCK, 1.5, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases luck slightly"),
+        RuneDef("luck2", "Luck", 2, Material.KELP, Attribute.LUCK, 1.5, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases luck moderately"),
+        RuneDef("luck3", "Luck", 3, Material.KELP, Attribute.LUCK, 1.5, listOf(EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.HEAD), "§7Increases luck significantly"),
+
+        )
+
 
     init {
-        register(
-            id = "swiftness1",
-            displayName = "§bRune of Swiftness I",
-            tier = 1,
-            material = Material.FEATHER,
-            modifiers = listOf(
-                RuneModifier(
-                    attribute = Attribute.MOVEMENT_SPEED,
-                    amount = 0.015, // base amount per tier
-                    operation = AttributeModifier.Operation.ADD_NUMBER,
-                    slot = EquipmentSlot.FEET
-                )
-            ),
-            validSlots = listOf(EquipmentSlot.FEET),
-            lore = listOf("§7Increases speed slightly"),
-            applyModifier = applier(1, "swiftness1"),
-            removeModifier = remover("swiftness1")
-        )
-
-        register(
-            id = "swiftness2",
-            displayName = "§bRune of Swiftness II",
-            tier = 2,
-            material = Material.FEATHER,
-            modifiers = listOf(
-                RuneModifier(
-                    attribute = Attribute.MOVEMENT_SPEED,
-                    amount = 0.015, // base amount per tier
-                    operation = AttributeModifier.Operation.ADD_NUMBER,
-                    slot = EquipmentSlot.FEET
-                )
-            ),
-            validSlots = listOf(EquipmentSlot.FEET),
-            lore = listOf("§7Increases speed slightly"),
-            applyModifier = applier(2, "swiftness2"),
-            removeModifier = remover("swiftness2")
-        )
-
-        register(
-            id = "swiftness3",
-            displayName = "§bRune of Swiftness III",
-            tier = 3,
-            material = Material.FEATHER,
-            modifiers = listOf(
-                RuneModifier(
-                    attribute = Attribute.MOVEMENT_SPEED,
-                    amount = 0.015, // base amount per tier
-                    operation = AttributeModifier.Operation.ADD_NUMBER,
-                    slot = EquipmentSlot.FEET
-                )
-            ),
-            validSlots = listOf(EquipmentSlot.FEET),
-            lore = listOf("§7Increases speed slightly"),
-            applyModifier = applier(3, "swiftness3"),
-            removeModifier = remover("swiftness3")
-        )
-
-        register(
-            id = "vitality1",
-            displayName = "§bRune of Vitality I",
-            tier = 1,
-            material = Material.RESIN_CLUMP,
-            modifiers = listOf(
-                RuneModifier(
-                    attribute = Attribute.MAX_HEALTH,
-                    amount = 2.0, // base amount per tier
-                    operation = AttributeModifier.Operation.ADD_NUMBER,
-                    slot = EquipmentSlot.CHEST
-                )
-            ),
-            validSlots = listOf(EquipmentSlot.CHEST),
-            lore = listOf("§7Increases health slightly"),
-            applyModifier = applier(1, "vitality1"),
-            removeModifier = remover("vitality1")
-        )
-
-        register(
-            id = "vitality2",
-            displayName = "§bRune of Vitality II",
-            tier = 2,
-            material = Material.RESIN_CLUMP,
-            modifiers = listOf(
-                RuneModifier(
-                    attribute = Attribute.MAX_HEALTH,
-                    amount = 2.0, // base amount per tier
-                    operation = AttributeModifier.Operation.ADD_NUMBER,
-                    slot = EquipmentSlot.CHEST
-                )
-            ),
-            validSlots = listOf(EquipmentSlot.CHEST),
-            lore = listOf("§7Increases health moderately"),
-            applyModifier = applier(2, "vitality2"),
-            removeModifier = remover("vitality2")
-        )
-
-        register(
-            id = "vitality3",
-            displayName = "§bRune of Vitality III",
-            tier = 3,
-            material = Material.RESIN_CLUMP,
-            modifiers = listOf(
-                RuneModifier(
-                    attribute = Attribute.MAX_HEALTH,
-                    amount = 2.0, // base amount per tier
-                    operation = AttributeModifier.Operation.ADD_NUMBER,
-                    slot = EquipmentSlot.CHEST
-                )
-            ),
-            validSlots = listOf(EquipmentSlot.CHEST),
-            lore = listOf("§7Increases health significantly"),
-            applyModifier = applier(3, "vitality3"),
-            removeModifier = remover("vitality3")
-        )
-    }
-
-    private fun applier(tier: Int, id: String): (ItemStack) -> ItemStack = { armor ->
-        armor.clone().apply {
-            val meta = itemMeta ?: return@apply
-            val uuid = UUID.nameUUIDFromBytes(id.toByteArray())
-            val runeSpec = getRuneSpecById(id) ?: return@apply
-
-            runeSpec.modifiers.forEach { mod ->
-                meta.removeAttributeModifier(mod.attribute)
+        predefinedRunes.forEach { def ->
+            val runeId = def.id
+            val displayName = "§bRune of ${def.name} ${toRoman(def.tier)}"
+            val lore = listOf(def.loreText)
+            val uuids = def.slot.associateWith { slot ->
+                UUID.nameUUIDFromBytes("$runeId-${slot.name}".toByteArray())
             }
-            runeSpec.modifiers.forEach { baseMod ->
-                val scaledAmount = baseMod.amount * tier
-                val newModifier = AttributeModifier(
-                    uuid,
-                    "${runeSpec.id}$tier",
-                    scaledAmount,
-                    baseMod.operation,
-                    baseMod.slot
-                )
-                meta.addAttributeModifier(baseMod.attribute, newModifier)
+
+            val modifiers = def.slot.map { slot ->
+                RuneModifier(def.attribute, def.amount, AttributeModifier.Operation.ADD_NUMBER, slot)
             }
-            itemMeta = meta
-        }
-    }
 
-    private fun remover(id: String): (ItemStack) -> ItemStack = { armor ->
-        armor.clone().apply {
-            val meta = itemMeta ?: return@apply
-            val uuid = UUID.nameUUIDFromBytes(id.toByteArray())
-            val runeSpec = getRuneSpecById(id) ?: return@apply
 
-            runeSpec.modifiers.forEach { mod ->
-                val existing = meta.getAttributeModifiers(mod.attribute)
-                existing?.filter { it.uniqueId == uuid }?.forEach {
-                    meta.removeAttributeModifier(mod.attribute, it)
+            register(
+                id = runeId,
+                displayName = displayName,
+                tier = def.tier,
+                material = def.material,
+                modifiers = modifiers,
+                lore = lore,
+                validSlots = def.slot,
+                applyModifier = { item ->
+                    item.clone().apply {
+                        val meta = itemMeta ?: return@apply
+                        def.slot.forEach { slot ->
+                            val uuid = uuids[slot]!!
+                            meta.getAttributeModifiers(def.attribute)
+                                ?.filter { it.uniqueId == uuid }
+                                ?.forEach { meta.removeAttributeModifier(def.attribute, it) }
+
+                            meta.addAttributeModifier(
+                                def.attribute,
+                                AttributeModifier(
+                                    uuid,
+                                    "$runeId${def.tier}_$slot",
+                                    def.amount * def.tier,
+                                    AttributeModifier.Operation.ADD_NUMBER,
+                                    slot
+                                )
+                            )
+                        }
+                        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES)
+                        itemMeta = meta
+                    }
+                },
+                removeModifier = { item ->
+                    item.clone().apply {
+                        val meta = itemMeta ?: return@apply
+                        def.slot.forEach { slot ->
+                            val uuid = uuids[slot]!!
+                            meta.getAttributeModifiers(def.attribute)
+                                ?.filter { it.uniqueId == uuid }
+                                ?.forEach { meta.removeAttributeModifier(def.attribute, it) }
+                        }
+                        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES)
+                        itemMeta = meta
+
+                    }
                 }
-            }
-            itemMeta = meta
+
+            )
         }
     }
-
-
-
 
 }
