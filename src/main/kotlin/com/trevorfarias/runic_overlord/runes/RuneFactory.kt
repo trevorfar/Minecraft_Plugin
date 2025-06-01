@@ -1,5 +1,6 @@
 package com.trevorfarias.runic_overlord.runes
 
+import com.trevorfarias.runic_overlord.RunicOverlord
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
@@ -7,6 +8,7 @@ import org.bukkit.attribute.AttributeModifier
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
 import java.util.*
 
 data class RuneDef(
@@ -28,24 +30,19 @@ object RuneFactory {
 
     fun getRuneSpecById(id: String): RuneSpec? = runes[id]
 
-    fun getRuneSpecFromItem(item: ItemStack): RuneSpec? {
-        val meta = item.itemMeta ?: return null
-        return runes.values.firstOrNull {
-            it.displayName == meta.displayName && it.lore == meta.lore && item.type == it.material
-        }
-    }
+
 
     fun getRuneSpecByDisplayName(name: String): RuneSpec? {
         return runes.values.firstOrNull { it.displayName == name }
     }
 
-    fun getRuneIdFromItem(item: ItemStack): String? {
+    fun getRuneSpecFromItem(item: ItemStack): RuneSpec? {
         val meta = item.itemMeta ?: return null
-        return runes.entries.firstOrNull {
-            val spec = it.value
-            spec.displayName == meta.displayName && spec.lore == meta.lore && item.type == spec.material
-        }?.key
+        val key = NamespacedKey(RunicOverlord.instance, "rune_id")
+        val id = meta.persistentDataContainer.get(key, PersistentDataType.STRING) ?: return null
+        return getRuneSpecById(id)
     }
+
 
     fun getRunesFromEquipment(player: Player): List<RuneSpec> {
         val equipment = player.equipment ?: return emptyList()
@@ -65,13 +62,19 @@ object RuneFactory {
         val rune = runes[id] ?: return null
         val item = ItemStack(rune.material)
         val meta = item.itemMeta ?: return item
+
         meta.setDisplayName(rune.displayName)
         meta.lore = rune.lore
         meta.addEnchant(org.bukkit.enchantments.Enchantment.INFINITY, 1, true)
         meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS)
+
+        val key = NamespacedKey(RunicOverlord.instance, "rune_id")
+        meta.persistentDataContainer.set(key, PersistentDataType.STRING, id)
+
         item.itemMeta = meta
         return item
     }
+
 
     private fun register(
         id: String,

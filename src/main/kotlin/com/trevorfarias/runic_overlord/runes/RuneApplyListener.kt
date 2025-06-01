@@ -1,9 +1,11 @@
 package com.trevorfarias.runic_overlord.runes
 
+import com.trevorfarias.runic_overlord.RunicOverlord
 import com.trevorfarias.runic_overlord.util.Constants
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -142,11 +144,13 @@ class RuneApplyListener : Listener {
 
         updatedMeta.lore = cleanedLore
         updatedMeta.persistentDataContainer.set(Constants.RUNE_SLOT_KEY, PersistentDataType.INTEGER, runeList.size)
+        updatedMeta.persistentDataContainer.set(Constants.RUNE_IDS_KEY, PersistentDataType.STRING, runeList.joinToString(","))
         updatedMeta.persistentDataContainer.set(
-            Constants.RUNE_IDS_KEY,
+            NamespacedKey(RunicOverlord.instance, "rune_id"),
             PersistentDataType.STRING,
-            runeList.joinToString(",")
+            runeSpec.id
         )
+
 
         updatedArmor.itemMeta = updatedMeta
         e.currentItem = updatedArmor
