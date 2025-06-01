@@ -7,6 +7,9 @@ object Constants {
     val RUNE_SLOT_KEY = NamespacedKey(RunicOverlord.instance, "rune_slots")
     val RUNE_IDS_KEY = NamespacedKey(RunicOverlord.instance, "rune_ids")
     val IS_RUNE_REMOVER = NamespacedKey(RunicOverlord.instance, "is_rune_remover")
+    val GEAR_ID_KEY       = NamespacedKey(RunicOverlord.instance, "gear_id")
+    val GEAR_QUALITY_KEY  = NamespacedKey(RunicOverlord.instance, "gear_quality")
+    val GEAR_IDENTIFIED_KEY = NamespacedKey(RunicOverlord.instance, "gear_identified")
 
     const val MAX_RUNES = 3
 }

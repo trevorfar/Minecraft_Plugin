@@ -1,5 +1,6 @@
 package com.trevorfarias.runic_overlord.commands
 
+import com.trevorfarias.runic_overlord.listeners.BarrierWand
 import com.trevorfarias.runic_overlord.runes.RuneFactory
 import com.trevorfarias.runic_overlord.voucher.VoucherFactory
 import org.bukkit.command.Command
@@ -20,17 +21,30 @@ class CustomItemCommand : CommandExecutor {
             return true
         }
 
-        if (args.size < 2) {
-            sender.sendMessage("§cUsage: /givecustom <voucher|rune> <id>")
+        if (args.isEmpty()) {
+            sender.sendMessage("§cUsage: /givecustom <voucher|rune|wand> <id?>")
             return true
         }
 
         val type = args[0].lowercase()
-        val id = args[1].lowercase()
+        val id = args.getOrNull(1)?.lowercase()
 
         val item = when (type) {
-            "voucher" -> VoucherFactory.createVoucher(id)
-            "rune" -> RuneFactory.createRune(id)
+            "voucher" -> {
+                if (id == null) {
+                    sender.sendMessage("§cUsage: /givecustom voucher <id>")
+                    return true
+                }
+                VoucherFactory.createVoucher(id)
+            }
+            "rune" -> {
+                if (id == null) {
+                    sender.sendMessage("§cUsage: /givecustom rune <id>")
+                    return true
+                }
+                RuneFactory.createRune(id)
+            }
+            "wand" -> BarrierWand.createWand()
             else -> {
                 sender.sendMessage("§cUnknown item type: $type")
                 return true

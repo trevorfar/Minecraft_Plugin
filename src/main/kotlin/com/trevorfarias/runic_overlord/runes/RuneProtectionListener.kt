@@ -20,7 +20,13 @@ class RuneProtectionListener : Listener {
         val item = event.item ?: return
         val rune = RuneFactory.getRuneSpecFromItem(item) ?: return
 
-        if (event.action.toString().contains("RIGHT_CLICK")) {
+        val materialName = item.type.name
+        val isArmor = materialName.contains("HELMET") ||
+                materialName.contains("CHESTPLATE") ||
+                materialName.contains("LEGGINGS") ||
+                materialName.contains("BOOTS")
+
+        if (!isArmor && event.action.toString().contains("RIGHT_CLICK")) {
             event.isCancelled = true
         }
     }

@@ -19,15 +19,32 @@ class BlinkstepListener : Listener {
         val now = System.currentTimeMillis()
 
         if (!player.isSneaking) return
-        if ((cooldowns[player.uniqueId] ?: 0L) > now - COOLDOWN_MS) return
+
+        val lastUsed = cooldowns[player.uniqueId] ?: 0L
+        val timeSinceLast = now - lastUsed
+
+        if (timeSinceLast < COOLDOWN_MS) {
+            val remainingMs = COOLDOWN_MS - timeSinceLast
+            val remainingSec = remainingMs / 1000.0
+            player.sendMessage("§cThis ability is still on cooldown. ${"%.1f".format(remainingSec)}s remaining.")
+            return
+        }
 
         val runes = RuneFactory.getRunesFromEquipment(player)
-        val hasBlinkstep = runes.any { it.id == "blinkstep1" }
 
-        if (!hasBlinkstep) return
+        val runeTier = runes.firstOrNull {
+            it.id == "blinkstep3" || it.id == "blinkstep2" || it.id == "blinkstep1"
+        }
+
+        val distance = when (runeTier?.id) {
+            "blinkstep3" -> 7.0
+            "blinkstep2" -> 5.0
+            "blinkstep1" -> 3.0
+            else -> return
+        }
 
         // Teleport logic
-        val direction: Vector = player.location.direction.normalize().multiply(3.0)
+        val direction: Vector = player.location.direction.normalize().multiply(distance)
         val targetLoc = player.location.clone().add(direction)
         val block = player.world.getBlockAt(targetLoc)
         val above = block.getRelative(0, 1, 0)

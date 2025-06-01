@@ -1,6 +1,8 @@
 package com.trevorfarias.runic_overlord
 
 import com.trevorfarias.runic_overlord.commands.CustomItemCommand
+import com.trevorfarias.runic_overlord.listeners.BarrierWand
+import com.trevorfarias.runic_overlord.listeners.RtpListener
 import com.trevorfarias.runic_overlord.listeners.SandBreakListener
 import com.trevorfarias.runic_overlord.runes.*
 import com.trevorfarias.runic_overlord.voucher.VoucherUseListener
@@ -21,6 +23,10 @@ object PluginManager {
         register(plugin, RuneProtectionListener())
         register(plugin, RuneLootInjector)
         register(plugin, BlinkstepListener())
+        register(plugin, BarrierWand())
+        register(plugin, RtpListener())
+
+
 
         plugin.getCommand("givecustom")?.setExecutor(CustomItemCommand())
     }
