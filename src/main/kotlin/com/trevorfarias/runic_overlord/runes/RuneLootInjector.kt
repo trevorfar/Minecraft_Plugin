@@ -1,4 +1,5 @@
 package com.trevorfarias.runic_overlord.runes
+import com.trevorfarias.runic_overlord.gear.GearFactory
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.event.EventHandler
@@ -42,6 +43,7 @@ object RuneLootInjector : Listener {
     fun onLootGenerate(event: LootGenerateEvent) {
         val lootTableKey = event.lootTable.key
         val luck = event.lootContext.luck
+        //event.lootTable.add(com.trevorfarias.runic_overlord.gear.GearFactory.createUnidentified("silver_sword"))
 
         registeredRuneLoots.forEach { spec ->
             // Flatten all targets into all their mapped tables

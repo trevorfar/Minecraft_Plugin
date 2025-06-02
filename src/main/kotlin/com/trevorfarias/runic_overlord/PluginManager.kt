@@ -1,6 +1,7 @@
 package com.trevorfarias.runic_overlord
 
 import com.trevorfarias.runic_overlord.commands.CustomItemCommand
+import com.trevorfarias.runic_overlord.identifier.IdentifierUseListener
 import com.trevorfarias.runic_overlord.listeners.BarrierWand
 import com.trevorfarias.runic_overlord.listeners.RtpListener
 import com.trevorfarias.runic_overlord.listeners.SandBreakListener
@@ -25,6 +26,7 @@ object PluginManager {
         register(plugin, BlinkstepListener())
         register(plugin, BarrierWand())
         register(plugin, RtpListener())
+        register(plugin, IdentifierUseListener())
 
 
 
