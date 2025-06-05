@@ -21,7 +21,7 @@ class VoucherUseListener : Listener {
         if (action.name.contains("RIGHT") && !spec.rightClickable) return
 
         event.isCancelled = true
-        //consumeOneItem(player, item)
+        consumeOneItem(player, item)
         spec.reward?.let { it(player) }
         player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f)
     }

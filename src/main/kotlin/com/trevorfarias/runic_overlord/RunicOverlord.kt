@@ -1,6 +1,11 @@
 package com.trevorfarias.runic_overlord
 
+import com.trevorfarias.runic_overlord.fishing.CustomFishingListener
+import com.trevorfarias.runic_overlord.fishing.FishingConfig
+import com.trevorfarias.runic_overlord.fishing.commands.FishingAdminCommand
+import com.trevorfarias.runic_overlord.fishing.commands.SellFishCommand
 import com.trevorfarias.runic_overlord.gear.GearFactory
+import com.trevorfarias.runic_overlord.util.VaultUtil
 import org.bukkit.plugin.java.JavaPlugin
 
 class RunicOverlord : JavaPlugin() {
@@ -9,8 +14,15 @@ class RunicOverlord : JavaPlugin() {
         instance = this
         logger.info("Runic Overlord is up and ready!")
         PluginManager.initialize(this)
+        FishingConfig.load(this)
+        getCommand("sellfish")?.setExecutor(SellFishCommand())
+        getCommand("rofishing")?.setExecutor(FishingAdminCommand())
+            ?: logger.severe("COMMAND rofishing not found in plugin.yml")
+
         GearFactory.initDefaults()
-    }
+        if (!VaultUtil.setup(this)) {
+            logger.warning("No Vault economy provider found – /sellfish will just drop XP.")
+        }    }
 
     override fun onDisable() {
         PluginManager.shutdown(this)

@@ -9,3 +9,13 @@ commands:
     usage: /<command> <voucher|rune|gear|identifier|wand> <id?> [unidentified]
     permission: runicoverlord.admin
     permission-message: §cYou must be an admin to use this command.
+  sellfish:
+    description: Sells every fish in your inventory for Vault currency
+    aliases: [sfish]
+    usage: /<command>
+    permission: runicoverlord.command.sellfish
+
+  rofishing:
+    description: Admin-only subcommand set (currently just “reload”)
+    usage: /rofishing reload
+    permission: runicoverlord.admin

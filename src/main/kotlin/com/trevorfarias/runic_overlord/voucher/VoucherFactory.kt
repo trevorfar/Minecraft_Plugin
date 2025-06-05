@@ -50,6 +50,28 @@ object VoucherFactory {
 
     // Map of all defined vouchers by ID
     private val voucherRegistry: Map<String, VoucherSpec> = mapOf(
+        "epic_enchant_upgrade" to VoucherSpec(
+            id = "epic_enchant_upgrade",
+            displayName = "§5Epic Enchant Upgrade Voucher",
+            material = Material.ENCHANTED_BOOK,
+            rightClickable = false,
+            lore = listOf(
+                "§7Drag & drop onto gear to §drandomly §7upgrade",
+                "§7one enchantment by §d+1§7.",
+                "§8Cannot exceed vanilla max by more than §d+1§8."
+            )
+        ),
+        "mythic_enchant_upgrade" to VoucherSpec(
+            id = "mythic_enchant_upgrade",
+            displayName = "§6Mythic Enchant Upgrade Voucher",
+            material = Material.ENCHANTED_BOOK,
+            rightClickable = false,
+            lore = listOf(
+                "§7Drag & drop onto gear to §echoose",
+                "§7an enchantment and add §e+1§7.",
+                "§8May exceed vanilla max by §e+2§8."
+            )
+        ),
         "diamond" to VoucherSpec(
             id = "diamond",
             displayName = "§bDiamond Voucher",

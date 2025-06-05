@@ -1,11 +1,15 @@
 package com.trevorfarias.runic_overlord
 
 import com.trevorfarias.runic_overlord.commands.CustomItemCommand
+import com.trevorfarias.runic_overlord.crafting.RemainsCraftingListener
+import com.trevorfarias.runic_overlord.fishing.CustomFishingListener
+import com.trevorfarias.runic_overlord.fishing.FishGuttingListener
 import com.trevorfarias.runic_overlord.identifier.IdentifierUseListener
 import com.trevorfarias.runic_overlord.listeners.BarrierWand
 import com.trevorfarias.runic_overlord.listeners.RtpListener
 import com.trevorfarias.runic_overlord.listeners.SandBreakListener
 import com.trevorfarias.runic_overlord.runes.*
+import com.trevorfarias.runic_overlord.voucher.EnchantUpgradeVoucherListener
 import com.trevorfarias.runic_overlord.voucher.VoucherUseListener
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
@@ -27,6 +31,12 @@ object PluginManager {
         register(plugin, BarrierWand())
         register(plugin, RtpListener())
         register(plugin, IdentifierUseListener())
+        register(plugin, CustomFishingListener<Any>())
+        register(plugin, EnchantUpgradeVoucherListener())
+        register(plugin, FishGuttingListener())
+        register(plugin, RemainsCraftingListener())
+
+
 
 
 

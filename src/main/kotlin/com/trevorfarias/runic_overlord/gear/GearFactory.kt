@@ -145,8 +145,6 @@ object GearFactory {
                         listOf("§7Quality: ${rarity.colour.toLegacy()}${rarity.display} §f($pct%)")
                     }
                 }
-
-                // equipmentSlots will use the default (HAND) so no need to pass it
             )
         )
 
