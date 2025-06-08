@@ -17,7 +17,6 @@ fun LootTableSpec.roll(): RewardSpec {
             is ItemRewardSpec   -> it.chance
             else                -> 0.0
         }
-        Bukkit.getLogger().info("[DEBUG] Roll table=${this}  reward=$it  chance=$chance")
 
         if (ThreadLocalRandom.current().nextDouble() < chance) return it
 

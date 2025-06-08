@@ -14,8 +14,15 @@ commands:
     aliases: [sfish]
     usage: /<command>
     permission: runicoverlord.command.sellfish
-
+  fishlevel:
+    description: Check current fishing level
+    usage: /fl
+    permission: runicoverlord.default
   rofishing:
     description: Admin-only subcommand set (currently just “reload”)
     usage: /rofishing reload
+    permission: runicoverlord.admin
+  rofsetlevel:
+    description: Set a player’s fishing level
+    usage: /rofsetlevel <player> <level>
     permission: runicoverlord.admin

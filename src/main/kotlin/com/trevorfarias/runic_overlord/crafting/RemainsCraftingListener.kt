@@ -7,12 +7,11 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.inventory.CraftingInventory
-import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
 class RemainsCraftingListener : Listener {
 
-    private val plugin = Bukkit.getPluginManager().getPlugin("RunicOverlord")!!
+    private val plugin    = Bukkit.getPluginManager().getPlugin("RunicOverlord")!!
     private val remainKey = NamespacedKey(plugin, "remain_id")
 
     @EventHandler
@@ -20,15 +19,18 @@ class RemainsCraftingListener : Listener {
         val inv  = e.inventory as CraftingInventory
         val grid = inv.matrix.filterNotNull().filter { !it.type.isAir }
 
-        // need exactly 2 items
+        /* ── need exactly two non-air items ── */
         if (grid.size != 2) { inv.result = null; return }
+
+        /* ── NEW GUARD: ensure each stack size == 1 ── */
+        if (grid.any { it.amount != 1 }) { inv.result = null; return }
 
         val firstId  = grid[0].itemMeta?.persistentDataContainer
             ?.get(remainKey, PersistentDataType.STRING)
         val secondId = grid[1].itemMeta?.persistentDataContainer
             ?.get(remainKey, PersistentDataType.STRING)
 
-        // both items must be remains and of the SAME type
+        /* ── both items must be remains of the same type ── */
         if (firstId == null || firstId != secondId) { inv.result = null; return }
 
         val resultVoucherId = when (firstId) {
@@ -37,6 +39,6 @@ class RemainsCraftingListener : Listener {
             else             -> null
         } ?: run { inv.result = null; return }
 
-        inv.result = VoucherFactory.createVoucher(resultVoucherId)
+        inv.result = VoucherFactory.createVoucher(resultVoucherId)?.apply { amount = 1 }
     }
 }

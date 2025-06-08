@@ -33,8 +33,6 @@ object PluginManager {
         register(plugin, IdentifierUseListener())
         register(plugin, CustomFishingListener<Any>())
         register(plugin, EnchantUpgradeVoucherListener())
-        register(plugin, FishGuttingListener())
-        register(plugin, RemainsCraftingListener())
 
 
 

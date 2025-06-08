@@ -10,8 +10,9 @@ data class FishSpec(
     val material: Material,
     val minWeight: Double,
     val maxWeight: Double,
-    val baseValue: Double,
-    val biomes: Set<Biome>
+    var baseValue: Double,
+    val biomes: Set<Biome>,
+    val minLevel: Int = 1
 ) {
 
     fun randomWeight(minPercent: Double = 0.0): Double {
@@ -33,16 +34,37 @@ data class TierSpec(
     val minWeightPercent: Double = 0.0      // NEW
 
 )
-sealed interface RewardSpec
-data class FishRewardSpec(val weight: Double = 1.0) : RewardSpec
-data class RuneRewardSpec(val runeId: String, val chance: Double) : RewardSpec
-data class VoucherRewardSpec(val voucherId: String, val chance: Double) : RewardSpec
+sealed interface RewardSpec {
+    val category: RewardCategory?
+    val broadcast: Boolean
+}
+data class FishRewardSpec(
+    val weight: Double = 1.0,
+    override val category: RewardCategory? = null,
+    override val broadcast: Boolean = false
+) : RewardSpec
+
+data class RuneRewardSpec(
+    val runeId: String,
+    val chance: Double,
+    override val category: RewardCategory? = null,
+    override val broadcast: Boolean = false
+) : RewardSpec
+data class VoucherRewardSpec(
+    val voucherId: String,
+    val chance: Double,
+    override val category: RewardCategory?,
+    override val broadcast: Boolean = false
+    )
+    : RewardSpec
 data class ItemRewardSpec(
     val material: Material,
     val name: String?,
     val min: Int,
     val max: Int,
-    val chance: Double
+    val chance: Double,
+    override val category: RewardCategory?,
+    override val broadcast: Boolean = false
 ) : RewardSpec
 
 data class LootTableSpec(

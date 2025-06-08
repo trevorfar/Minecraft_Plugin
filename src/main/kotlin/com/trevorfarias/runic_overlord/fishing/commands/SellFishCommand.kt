@@ -2,12 +2,15 @@ package com.trevorfarias.runic_overlord.fishing.commands
 
 import com.trevorfarias.runic_overlord.fishing.FishingConfig
 import com.trevorfarias.runic_overlord.fishing.FishingKeys
+import com.trevorfarias.runic_overlord.fishing.PriceModel
+import com.trevorfarias.runic_overlord.util.Constants
 import com.trevorfarias.runic_overlord.util.VaultUtil
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
+import kotlin.math.pow
 
 class SellFishCommand : CommandExecutor {
 
@@ -36,9 +39,12 @@ class SellFishCommand : CommandExecutor {
             val tier = FishingConfig.tiers[tierId]       ?: FishingConfig.tiers["common"]!!
 
             /*────────── compute price ───────────*/
-            val pricePerFish = weight * spec.baseValue * tier.multiplier
+            val pricePerFish =
+                weight.pow(PriceModel.WEIGHT_EXP) *
+                        spec.baseValue *
+                        PriceModel.FACTOR *
+                        tier.multiplier
             total += pricePerFish * item.amount
-
             inv.setItem(slot, null) // clear the slot
         }
 
