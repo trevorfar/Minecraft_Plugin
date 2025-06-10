@@ -20,6 +20,7 @@ import org.bukkit.event.player.PlayerFishEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import roll
+import java.util.*
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -28,7 +29,8 @@ class CustomFishingListener<T> : Listener {
     /* ─────────────────────────── globals ─────────────────────────── */
     private val plugin = Bukkit.getPluginManager().getPlugin("RunicOverlord")!!
     private val bars   = mutableMapOf<Player, BossBar>()
-
+    private val willowCooldown = mutableMapOf<UUID, Long>()
+    private val WILLOW_COOLDOWN_TICKS = 50L
     /* ───────────────────── boss-bar helper ───────────────────────── */
     private fun showProgressBar(p: Player) {
         val (xp, need) = FishingLevel.FishingLeveling.progress(p)
@@ -55,69 +57,139 @@ class CustomFishingListener<T> : Listener {
         else       -> true
     }
 
+    private fun instantCatch(p: Player, biome: Biome) {
+        val caught = giveFish(p, biome) ?: return
+        p.sendMessage("§aWillow’s Rod reels in a fish instantly!")
+        p.playSound(p.location, Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.4f)
+    }
+
     /* ─────────────────────── main catch hook ─────────────────────── */
+
     @EventHandler
     fun onCatch(event: PlayerFishEvent) {
+
+        val p      = event.player
+        val biome  = p.location.block.biome
+        val mainId = GearFactory.getSpec(p.inventory.itemInMainHand)?.id
+        val offId  = GearFactory.getSpec(p.inventory.itemInOffHand )?.id
+
+        /* ───────────── CAST just happened ───────────── */
+        if (event.state == PlayerFishEvent.State.FISHING) {
+
+            /* Gillian’s Hook – 5 % faster bite */
+            if (offId == "gillians_hook") {
+
+                // Original values
+                val oldMin = event.hook.minWaitTime
+                val oldMax = event.hook.maxWaitTime
+
+                // Apply 80 % reduction (20 % of original) for testing
+                event.hook.minWaitTime =
+                    (oldMin * 0.2).toInt().coerceAtLeast(1)
+                event.hook.maxWaitTime =
+                    (oldMax * 0.2).toInt().coerceAtLeast(event.hook.minWaitTime + 1)
+
+                // New values
+                val newMin = event.hook.minWaitTime
+                val newMax = event.hook.maxWaitTime
+
+                // In-game feedback
+                p.sendMessage(
+                    "§b[Gillian-debug] bite window: §e$oldMin-$oldMax §7→ §a$newMin-$newMax ticks"
+                )
+
+                // Console log
+                Bukkit.getLogger().info(
+                    "[Gillian] ${p.name}: waitTime $oldMin-$oldMax -> $newMin-$newMax"
+                )
+            }
+
+            /* Willow’s Rod – 10 % instant catch, 1 s per-player cooldown */
+            val now     = Bukkit.getCurrentTick()
+            val lastUse = willowCooldown[p.uniqueId] ?: 0L
+            val ready   = now - lastUse >= WILLOW_COOLDOWN_TICKS
+
+            if (mainId == "willows_rod" && ready && Math.random() < Constants.WILLOWS_CHANCE) {
+                willowCooldown[p.uniqueId] = now.toLong()
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    instantCatch(p, biome)          // helper → drops fish & XP instantly
+                    p.swingMainHand()
+                })
+            }
+            return                                   // stop – no vanilla flow this tick
+        }
+
+        /* ───────────── NORMAL CAUGHT_FISH flow ───────────── */
         if (event.state != PlayerFishEvent.State.CAUGHT_FISH) return
-        val player = event.player
-        val biome  = player.location.block.biome
-        val table  = FishingConfig.tableForBiome(biome)
+
+        val table = FishingConfig.tableForBiome(biome)
 
         repeat(table.rolls) {
 
-            val reward = FishingConfig.randomRewardFor(player, table)
+            val reward       = FishingConfig.randomRewardFor(p, table)
+
+            /* Rod of Neptune – decide once per roll whether to duplicate */
+            val duplicate    = (mainId == "neptune_rod") && Math.random() < Constants.NEPTUNE_CHANCE
+            if(duplicate) p.playSound(p.location, Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.4f)
 
             fun announce(msg: String) =
-                Bukkit.broadcast(msg, "runicoverlord.seeBroadcast") // null => everyone
+                Bukkit.broadcast(msg, "runicoverlord.seeBroadcast") // null → everyone
 
             when (reward) {
 
                 /* ────────── FISH ────────── */
                 is FishRewardSpec -> {
-                    val caught = giveFish(player, biome)               // ItemStack returned
-                    if (reward.broadcast) {
-                        if (caught != null) {
-                            announce("${player.displayName} §7caught ${caught.itemMeta.displayName}§7!")
-                        }
+                    val caught = giveFish(p, biome)
+                    if (duplicate && caught != null) give(p, caught.clone())
+                    if (reward.broadcast && caught != null) {
+                        announce("${p.displayName} §7caught ${caught.itemMeta.displayName}§7!")
                     }
                 }
 
-                /* ─────────── RUNE ────────── */
+                /* ─────────── RUNE ─────────── */
                 is RuneRewardSpec -> RuneFactory.createRune(reward.runeId)?.let { item ->
-                    give(player, item)
+                    give(p, item)
+                    if (duplicate) give(p, item.clone())
                     if (reward.broadcast) {
-                        announce("${player.displayName} §areeled in the rune §l${item.itemMeta.displayName}§r§a!")
+                        announce("${p.displayName} §areeled in the rune §l${item.itemMeta.displayName}§r§a!")
                     }
                 }
 
-                /* ───────── VOUCHER ───────── */
+                /* ────────── VOUCHER ───────── */
                 is VoucherRewardSpec -> VoucherFactory.createVoucher(reward.voucherId)?.let { item ->
-                    give(player, item)
+                    give(p, item)
+                    if (duplicate) give(p, item.clone())
                     if (reward.broadcast) {
-                        announce("${player.displayName} §bfound a voucher: §l${item.itemMeta.displayName}§r§b!")
+                        announce("${p.displayName} §bfound a voucher: §l${item.itemMeta.displayName}§r§b!")
                     }
                 }
 
-                /* ─────── CUSTOM ITEM ─────── */
+                /* ──────── CUSTOM ITEM ─────── */
                 is ItemRewardSpec -> {
-                    val item = giveCustomItem(player, reward) ?: return@repeat
+                    val item = giveCustomItem(p, reward) ?: return@repeat
+                    if (duplicate) give(p, item.clone())
                     if (reward.broadcast) {
-                        announce("${player.displayName} §dhooked ${item.itemMeta.displayName}§d!")
+                        announce("${p.displayName} §dhooked ${item.itemMeta.displayName}§d!")
                     }
                 }
 
-                is GearRewardSpec    -> {
+                /* ─────────── GEAR ─────────── */
+                is GearRewardSpec -> {
                     val item = if (reward.unidentified)
                         GearFactory.createUnidentified(reward.gearId)
                     else
                         GearFactory.create(reward.gearId)
-                    item?.let { give(player, it) }
+                    item?.let {
+                        give(p, it)
+                        if (duplicate) give(p, it.clone())
+                    }
                 }
             }
         }
 
-        (event.caught as? Item)?.remove() // suppress vanilla item drop
+        (event.caught as? Item)?.remove()   // suppress vanilla drop
     }
+
 
     /* ─────────────────────── fish creation ───────────────────────── */
     private fun giveFish(p: Player, biome: Biome): ItemStack? {

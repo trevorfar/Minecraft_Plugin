@@ -13,7 +13,7 @@ commands:
     description: Sells every fish in your inventory for Vault currency
     aliases: [sfish]
     usage: /<command>
-    permission: runicoverlord.command.sellfish
+    permission: runicoverlord.default
   fishlevel:
     description: Check current fishing level
     usage: /fl
@@ -25,4 +25,8 @@ commands:
   rofsetlevel:
     description: Set a player’s fishing level
     usage: /rofsetlevel <player> <level>
+    permission: runicoverlord.admin
+  fish:
+    description: Instantly hook & reel one fish (internal helper for Willow’s Rod)
+    usage: /fish
     permission: runicoverlord.admin

@@ -45,4 +45,13 @@ data class EnchantStat(
     }
 }
 
+data class UnbreakableStat(
+    val alwaysTrue: Boolean = true         // <- satisfies the rule
+) : StatModifier {
+
+    override fun apply(item: ItemMeta, qualityPct: Int) {
+        item.isUnbreakable = true
+    }
+}
+
 /* you can keep adding new StatModifier implementations—e.g., PotionEffectStat, ModelOverrideStat, etc. */

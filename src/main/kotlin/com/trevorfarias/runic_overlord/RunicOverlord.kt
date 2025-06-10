@@ -3,10 +3,7 @@ package com.trevorfarias.runic_overlord
 import com.trevorfarias.runic_overlord.fishing.CustomFishingListener
 import com.trevorfarias.runic_overlord.fishing.FishingConfig
 import com.trevorfarias.runic_overlord.fishing.FishingLevel
-import com.trevorfarias.runic_overlord.fishing.commands.FishLevel
-import com.trevorfarias.runic_overlord.fishing.commands.FishingAdminCommand
-import com.trevorfarias.runic_overlord.fishing.commands.SellFishCommand
-import com.trevorfarias.runic_overlord.fishing.commands.SetLevel
+import com.trevorfarias.runic_overlord.fishing.commands.*
 import com.trevorfarias.runic_overlord.gear.GearFactory
 import com.trevorfarias.runic_overlord.util.VaultUtil
 import org.bukkit.plugin.java.JavaPlugin
@@ -23,6 +20,8 @@ class RunicOverlord : JavaPlugin() {
             ?: logger.severe("COMMAND rofishing not found in plugin.yml")
         getCommand("fishlevel")?.setExecutor(FishLevel())
         getCommand("rofsetlevel")?.setExecutor(SetLevel())
+        getCommand("fish")?.setExecutor(InstantFishCommand())
+
         GearFactory.initDefaults()
         FishingLevel.FishingDataKeys.init(this)
         if (!VaultUtil.setup(this)) {

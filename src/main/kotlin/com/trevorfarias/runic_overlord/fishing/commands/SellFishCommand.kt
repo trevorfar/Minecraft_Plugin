@@ -3,6 +3,7 @@ package com.trevorfarias.runic_overlord.fishing.commands
 import com.trevorfarias.runic_overlord.fishing.FishingConfig
 import com.trevorfarias.runic_overlord.fishing.FishingKeys
 import com.trevorfarias.runic_overlord.fishing.PriceModel
+import com.trevorfarias.runic_overlord.gear.GearFactory
 import com.trevorfarias.runic_overlord.util.Constants
 import com.trevorfarias.runic_overlord.util.VaultUtil
 import org.bukkit.command.Command
@@ -51,6 +52,11 @@ class SellFishCommand : CommandExecutor {
         if (total <= 0.0) {
             p.sendMessage("§eYou have no fish to sell!")
             return true
+        }
+
+        val offhand = p.inventory.itemInOffHand
+        if (GearFactory.getSpec(offhand)?.id == "lucky_hook") {
+            total *= 1.10
         }
 
         if (VaultUtil.isEnabled) {

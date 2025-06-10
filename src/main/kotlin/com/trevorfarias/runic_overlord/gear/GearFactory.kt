@@ -127,7 +127,7 @@ object GearFactory {
             GearSpec(
                 id = "silver_sword",
                 material = Material.IRON_SWORD,
-                displayName = "§bSilver Sword",
+                displayName = "§b[Common] Silver Sword",
 
                 stats = listOf(
                     AttributeStat(
@@ -147,7 +147,80 @@ object GearFactory {
                 }
             )
         )
+        register(
+            GearSpec(
+                id = "gillians_hook",
+                material = Material.TRIPWIRE_HOOK,
+                displayName = "§b[Rare] Gillian’s Hook",
+                stats = emptyList(),
+                loreBuilder = { _, _ ->
+                    listOf(
+                        "§7Off-Hand Bonus:",
+                        "§e+5% Faster bite time"
+                    )
+                }
+            )
+        )
+        register(
+            GearSpec(
+                id = "trusty_rod",
+                material = Material.FISHING_ROD,
+                displayName = "§b[Rare] Trusty Rod",
+                stats = listOf(UnbreakableStat()),
+                loreBuilder = { _, _ ->
+                    listOf("§7This rod will never let you down.")
+                },
+                equipmentSlots = setOf(EquipmentSlot.HAND)
+            )
+        )
 
+        /*  ───────── EPIC ───────── */
+        register(
+            GearSpec(
+                id = "lucky_hook",
+                material = Material.TRIPWIRE_HOOK,
+                displayName = "§d[Epic] Lucky Hook",
+                stats = emptyList(),
+                loreBuilder = { _, _ ->
+                    listOf(
+                        "§7Off-Hand Bonus:",
+                        "§e+10% Fish sale price"
+                    )
+                }
+            )
+        )
+
+        /*  ───────── MYTHICAL ───────── */
+        register(
+            GearSpec(
+                id = "willows_rod",
+                material = Material.FISHING_ROD,
+                displayName = "§6[Mythic] Willow’s Rod",
+                stats = emptyList(),
+                loreBuilder = { _, _ ->
+                    listOf(
+                        "§7Ability (§610 %§7):",
+                        "§eInstantly hooks & reels a fish."
+                    )
+                },
+                equipmentSlots = setOf(EquipmentSlot.HAND)
+            )
+        )
+        register(
+            GearSpec(
+                id = "neptune_rod",
+                material = Material.FISHING_ROD,
+                displayName = "§6[Mythic] Rod of Neptune",
+                stats = emptyList(),
+                loreBuilder = { _, _ ->
+                    listOf(
+                        "§7Ability (§65 %§7):",
+                        "§eCatches double loot."
+                    )
+                },
+                equipmentSlots = setOf(EquipmentSlot.HAND)
+            )
+        )
 
         // register more gear here …
         // register(GearSpec(id = "bronze_axe", …)
