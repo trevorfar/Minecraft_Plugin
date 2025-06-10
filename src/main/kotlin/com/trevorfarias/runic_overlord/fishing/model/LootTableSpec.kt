@@ -6,7 +6,7 @@ fun LootTableSpec.roll(): RewardSpec {
     // Split rewards that have explicit "chance" (probability) vs weight-based selection
     val probabilistic = rewards.filter {
         when (it) {
-            is RuneRewardSpec, is VoucherRewardSpec, is ItemRewardSpec -> true
+            is RuneRewardSpec, is VoucherRewardSpec, is ItemRewardSpec,  is GearRewardSpec -> true
             else -> false
         }
     }
@@ -15,6 +15,8 @@ fun LootTableSpec.roll(): RewardSpec {
             is RuneRewardSpec   -> it.chance
             is VoucherRewardSpec -> it.chance
             is ItemRewardSpec   -> it.chance
+            is GearRewardSpec   -> it.chance
+
             else                -> 0.0
         }
 

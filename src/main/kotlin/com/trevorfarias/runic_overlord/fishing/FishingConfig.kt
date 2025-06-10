@@ -18,7 +18,7 @@ import kotlin.math.max
 /* ──────────────────────────  ECONOMY MODEL  ──────────────────────────── */
 object PriceModel {
     /** Pull this up or down to inflate / deflate the whole fish market. */
-    const val FACTOR      = 60.0
+    const val FACTOR      = 1.0
 
     /** 1.0 → linear, 0.0 → weight-agnostic, 0.60 picked to flatten extremes. */
     const val WEIGHT_EXP  = 0.60
@@ -117,6 +117,7 @@ object FishingConfig {
                 spec.baseValue = target / (PriceModel.FACTOR * tierMult * weightTerm)
             }
 
+
             fish[id] = spec
         }
     }
@@ -189,6 +190,11 @@ object FishingConfig {
                     chance    = (map["chance"] as Number).toDouble(),
                     category  = cat,
                     broadcast = bc
+                )
+                "GEAR" -> GearRewardSpec(
+                    gearId = map["id"].toString(),
+                    chance = (map["chance"] as Number).toDouble(),
+                    unidentified = map["unidentified"] as? Boolean ?: false
                 )
                 else -> null
             }

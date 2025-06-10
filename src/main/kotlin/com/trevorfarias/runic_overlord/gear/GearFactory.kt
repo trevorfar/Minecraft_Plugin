@@ -134,7 +134,7 @@ object GearFactory {
                         attribute = Attribute.ATTACK_DAMAGE,   // ← correct enum
                         slot      = EquipmentSlot.HAND,
                         min       = 5.0,
-                        max       = 20.0
+                        max       = 15.0
                     )
                 ),
 

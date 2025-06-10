@@ -72,3 +72,11 @@ data class LootTableSpec(
     val inherit: String? = null,
     val rewards: List<RewardSpec>
 )
+
+data class GearRewardSpec(
+    val gearId: String,
+    val chance: Double,
+    val unidentified: Boolean = false,   // drop rolled or hidden qualit
+    override val category: RewardCategory? = null,
+    override val broadcast: Boolean = false
+) : RewardSpec

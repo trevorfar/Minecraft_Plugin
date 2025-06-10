@@ -1,6 +1,7 @@
 package com.trevorfarias.runic_overlord.fishing
 
 import com.trevorfarias.runic_overlord.fishing.model.*
+import com.trevorfarias.runic_overlord.gear.GearFactory
 import com.trevorfarias.runic_overlord.runes.RuneFactory
 import com.trevorfarias.runic_overlord.util.Constants
 import com.trevorfarias.runic_overlord.voucher.VoucherFactory
@@ -104,6 +105,14 @@ class CustomFishingListener<T> : Listener {
                         announce("${player.displayName} §dhooked ${item.itemMeta.displayName}§d!")
                     }
                 }
+
+                is GearRewardSpec    -> {
+                    val item = if (reward.unidentified)
+                        GearFactory.createUnidentified(reward.gearId)
+                    else
+                        GearFactory.create(reward.gearId)
+                    item?.let { give(player, it) }
+                }
             }
         }
 
@@ -118,7 +127,7 @@ class CustomFishingListener<T> : Listener {
         var tier: TierSpec
         do { tier = FishingConfig.randomTier() } while (!tierAllowed(lvl, tier.id))
 
-        val weight     = spec.randomWeight(tier.minWeightPercent)
+        val weight = spec.randomWeight(tier.minWeightPercent)
 
         val sellValue =
             weight.pow(PriceModel.WEIGHT_EXP) *
