@@ -5,6 +5,8 @@ import com.trevorfarias.runic_overlord.fishing.FishingConfig
 import com.trevorfarias.runic_overlord.fishing.FishingLevel
 import com.trevorfarias.runic_overlord.fishing.commands.*
 import com.trevorfarias.runic_overlord.gear.GearFactory
+import com.trevorfarias.runic_overlord.gear.GearGuiCommand
+import com.trevorfarias.runic_overlord.gear.GearReloadCommand
 import com.trevorfarias.runic_overlord.util.VaultUtil
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -21,8 +23,10 @@ class RunicOverlord : JavaPlugin() {
         getCommand("fishlevel")?.setExecutor(FishLevel())
         getCommand("rofsetlevel")?.setExecutor(SetLevel())
         getCommand("fish")?.setExecutor(InstantFishCommand())
+        getCommand("rofgear")?.setExecutor(GearReloadCommand(this))
+        getCommand("legendary")?.setExecutor(GearGuiCommand(this))
+        getCommand("li")?.setExecutor(GearGuiCommand(this))
 
-        GearFactory.initDefaults()
         FishingLevel.FishingDataKeys.init(this)
         if (!VaultUtil.setup(this)) {
             logger.warning("No Vault economy provider found – /sellfish will just drop XP.")

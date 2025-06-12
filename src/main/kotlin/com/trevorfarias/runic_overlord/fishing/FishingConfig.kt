@@ -29,7 +29,7 @@ object PriceModel {
         "uncommon" to  350.0,
         "rare"     to 2_000.0,
         "epic"     to 15_000.0,
-        "mythical" to 25_000.0
+        "mythic" to 25_000.0
     )
 }
 

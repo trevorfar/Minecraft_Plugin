@@ -2,6 +2,7 @@ package com.trevorfarias.runic_overlord
 
 import com.trevorfarias.runic_overlord.commands.CustomItemCommand
 import com.trevorfarias.runic_overlord.crafting.RemainsCraftingListener
+import com.trevorfarias.runic_overlord.fishing.CustomFishingGearListener
 import com.trevorfarias.runic_overlord.fishing.CustomFishingListener
 import com.trevorfarias.runic_overlord.fishing.FishGuttingListener
 import com.trevorfarias.runic_overlord.identifier.IdentifierUseListener
@@ -32,7 +33,10 @@ object PluginManager {
         register(plugin, RtpListener())
         register(plugin, IdentifierUseListener())
         register(plugin, CustomFishingListener<Any>())
+        register(plugin, CustomFishingGearListener())
+
         register(plugin, EnchantUpgradeVoucherListener())
+
 
 
 

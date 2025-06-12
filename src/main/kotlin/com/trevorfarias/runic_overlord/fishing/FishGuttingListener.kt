@@ -38,7 +38,7 @@ class FishGuttingListener : Listener {
                 val qty = if (Random.nextDouble() < 0.25) 2 else 1
                 giveRemains(p, "epic_remains", "§5Epic Fish Remains", qty)
             }
-            "mythical" -> {
+            "mythic" -> {
                 giveRemains(p, "mythic_remains", "§6Mythic Fish Remains", 1)
             }
             else -> {

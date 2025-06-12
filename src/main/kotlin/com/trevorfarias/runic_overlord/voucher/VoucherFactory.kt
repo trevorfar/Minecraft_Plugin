@@ -145,7 +145,7 @@ object VoucherFactory {
 
         meta.setDisplayName(spec.displayName)
         meta.lore = spec.lore
-        meta.addEnchant(Enchantment.SHARPNESS, 1, true)
+        meta.addEnchant(Enchantment.INFINITY, 1000, true)
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
 
         if (id == "rune_remover") {

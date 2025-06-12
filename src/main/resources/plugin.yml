@@ -30,3 +30,11 @@ commands:
     description: Instantly hook & reel one fish (internal helper for Willow’s Rod)
     usage: /fish
     permission: runicoverlord.admin
+  rofgear:
+    description: Reloads gear config from gear.yml
+    usage: /rofgear reload
+    permission: runicoverlord.reloadgear
+  li:
+    description: Lists available custom gear
+    usage: /li
+    permission: runicoverlord.default

@@ -21,7 +21,7 @@ data class AttributeStat(
     val uuidSeed: String = UUID.randomUUID().toString()
 ) : StatModifier {
 
-    override fun apply(itemMeta: ItemMeta, qualityPct: Int) {
+    override fun apply(item: ItemMeta, qualityPct: Int) {
         val value = min + (max - min) * (qualityPct / 100.0)
         val modifier = AttributeModifier(
             UUID.nameUUIDFromBytes("$uuidSeed-$qualityPct".toByteArray()),
@@ -30,7 +30,7 @@ data class AttributeStat(
             op,
             slot
         )
-        itemMeta.addAttributeModifier(attribute, modifier)
+        item.addAttributeModifier(attribute, modifier)
     }
 }
 

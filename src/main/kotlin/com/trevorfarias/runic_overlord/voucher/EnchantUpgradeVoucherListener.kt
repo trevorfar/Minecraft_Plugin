@@ -31,6 +31,8 @@ class EnchantUpgradeVoucherListener : Listener {
         val spec    = VoucherFactory.matchVoucher(cursor) ?: return
         val gear    = e.currentItem ?: return
         if (gear.type.isAir) return
+        if (gear.type.maxDurability <= 0) return
+
 
         when (spec.id) {
             "epic_enchant_upgrade"   -> handleEpic(p, gear, cursor, e)

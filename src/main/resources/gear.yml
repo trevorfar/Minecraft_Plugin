@@ -1,0 +1,55 @@
+gear:
+  silver_sword:
+    display-name: "§b[Common] Silver Sword"
+    material: IRON_SWORD
+    stats:
+      - type: attribute
+        attribute: GENERIC_ATTACK_DAMAGE
+        slot: HAND
+        min: 5.0
+        max: 15.0
+    lore:
+      - "§7Quality: <rarity_colour><rarity_name> §f(<quality>%)"
+
+  gillians_hook:
+    display-name: "§b[Rare] Gillian’s Hook"
+    material: TRIPWIRE_HOOK
+    stats: []
+    lore:
+      - "§7Off-Hand Bonus:"
+      - "§e+5% Faster bite time"
+
+  trusty_rod:
+    display-name: "§b[Rare] Trusty Rod"
+    material: FISHING_ROD
+    stats:
+      - type: unbreakable
+    lore:
+      - "§7This rod will never let you down."
+    equipment-slots: [HAND]
+
+  lucky_hook:
+    display-name: "§d[Epic] Lucky Hook"
+    material: TRIPWIRE_HOOK
+    stats: []
+    lore:
+      - "§7Off-Hand Bonus:"
+      - "§e+10% Fish sale price"
+
+  willows_rod:
+    display-name: "§6[Mythic] Willow’s Rod"
+    material: FISHING_ROD
+    stats: []
+    lore:
+      - "§7Ability (§610 %§7):"
+      - "§eInstantly hooks & reels a fish."
+    equipment-slots: [HAND]
+
+  neptune_rod:
+    display-name: "§6[Mythic] Rod of Neptune"
+    material: FISHING_ROD
+    stats: []
+    lore:
+      - "§7Ability (§65 %§7):"
+      - "§eCatches double loot."
+    equipment-slots: [HAND]

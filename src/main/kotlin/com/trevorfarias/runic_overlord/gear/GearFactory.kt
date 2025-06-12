@@ -1,15 +1,19 @@
 package com.trevorfarias.runic_overlord.gear
 
+import com.trevorfarias.runic_overlord.fishing.FishingConfig.load
 import com.trevorfarias.runic_overlord.util.Constants
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 import java.util.concurrent.ThreadLocalRandom
 
 
@@ -17,6 +21,83 @@ object GearFactory {
 
     private val specs = mutableMapOf<String, GearSpec>()
     private val rng   = ThreadLocalRandom.current()
+
+    var locationTagPrettyNames: Map<String, String> = emptyMap()
+    fun getAllSpecs(): List<GearSpec> = specs.values.toList()
+    fun reloadFromYML(plugin: JavaPlugin) {
+        specs.clear()
+        val file = File(plugin.dataFolder, "gear.yml")
+        if (!file.exists()) plugin.saveResource("gear.yml", false)
+        val root = YamlConfiguration.loadConfiguration(file)
+        val section = root.getConfigurationSection("gear") ?: return
+
+
+
+        locationTagPrettyNames = root.getConfigurationSection("location-tags")
+            ?.getKeys(false)
+            ?.associateWith { key -> root.getString("location-tags.$key")!! }
+            ?: emptyMap()
+
+        for (id in section.getKeys(false)) {
+            val s = section.getConfigurationSection(id) ?: continue
+            val rarityKey = s.getString("rarity") ?: "COMMON"
+            val rarity = Rarity.valueOf(rarityKey.uppercase())
+            val displayName = "${rarity.colour.toLegacy()}[${rarity.display}] §f${s.getString("display-name")}"
+            val material = Material.valueOf(s.getString("material")!!.uppercase())
+            val loreList = s.getStringList("lore")
+            val slots = s.getStringList("equipment-slots")
+                .mapNotNull { runCatching { EquipmentSlot.valueOf(it.uppercase()) }.getOrNull() }
+                .toSet().ifEmpty { setOf(EquipmentSlot.HAND) }
+
+            val locations = s.getStringList("locations") // e.g., ["endcity", "altar"]
+            val abilityBaseChance = s.getDouble("ability-base-chance", 0.0)
+
+            // --- parse stats ---
+            val stats = (s.getList("stats") ?: emptyList()).mapNotNull { raw ->
+                val m = raw as? Map<*, *> ?: return@mapNotNull null
+                when (m["type"]) {
+                    "attribute" -> AttributeStat(
+                        attribute = Attribute.valueOf(m["attribute"].toString().uppercase()),
+                        slot = EquipmentSlot.valueOf(m["slot"].toString().uppercase()),
+                        min = (m["min"] as Number).toDouble(),
+                        max = (m["max"] as Number).toDouble()
+                    )
+                    "unbreakable" -> UnbreakableStat()
+                    // Add more stat types here...
+                    else -> null
+                }
+            }
+
+            // --- loreBuilder replaces <rarity_colour>, <rarity_name>, <quality> ---
+            val spec = GearSpec(
+                id = id,
+                material = material,
+                displayName = displayName,
+                stats = stats,
+                loreBuilder = { pct, rarity ->
+                    val abilityPct = abilityBaseChance * (pct / 100.0)
+                    val coloredPct = "${rarity.colour.toLegacy()}${"%.1f".format(abilityPct)}"
+                    val newLore = loreList.map { line ->
+                        line.replace("<rarity_colour>", rarity.colour.toLegacy())
+                            .replace("<rarity_name>", rarity.display)
+                            .replace("<quality>", pct.toString())
+                            .replace("<ability_pct", coloredPct)
+                    }.toMutableList()
+
+                    if (newLore.none { it.contains("Quality") }) {
+                        newLore += "§7Quality: ${rarity.colour.toLegacy()}${rarity.display} §8($pct%)"
+                    }
+                    newLore
+                },
+                equipmentSlots = slots,
+                locationTags = locations,
+                rarity = rarity,
+                abilityBaseChance = abilityBaseChance
+            )
+            register(spec)
+        }
+        Bukkit.getLogger().info("[RunicOverlord] Loaded ${specs.size} gear specs from YAML.")
+    }
 
     fun register(spec: GearSpec) { specs[spec.id] = spec }
 
@@ -120,112 +201,5 @@ object GearFactory {
         meta.removeItemFlags(ItemFlag.HIDE_ATTRIBUTES)
 
         item.setItemMeta(meta)
-    }
-
-    fun initDefaults() {
-        register(
-            GearSpec(
-                id = "silver_sword",
-                material = Material.IRON_SWORD,
-                displayName = "§b[Common] Silver Sword",
-
-                stats = listOf(
-                    AttributeStat(
-                        attribute = Attribute.ATTACK_DAMAGE,   // ← correct enum
-                        slot      = EquipmentSlot.HAND,
-                        min       = 5.0,
-                        max       = 15.0
-                    )
-                ),
-
-                loreBuilder = { pct, rarity ->
-                    if (pct < 0) {
-                        listOf("§7Quality: §oUnidentified")
-                    } else {
-                        listOf("§7Quality: ${rarity.colour.toLegacy()}${rarity.display} §f($pct%)")
-                    }
-                }
-            )
-        )
-        register(
-            GearSpec(
-                id = "gillians_hook",
-                material = Material.TRIPWIRE_HOOK,
-                displayName = "§b[Rare] Gillian’s Hook",
-                stats = emptyList(),
-                loreBuilder = { _, _ ->
-                    listOf(
-                        "§7Off-Hand Bonus:",
-                        "§e+5% Faster bite time"
-                    )
-                }
-            )
-        )
-        register(
-            GearSpec(
-                id = "trusty_rod",
-                material = Material.FISHING_ROD,
-                displayName = "§b[Rare] Trusty Rod",
-                stats = listOf(UnbreakableStat()),
-                loreBuilder = { _, _ ->
-                    listOf("§7This rod will never let you down.")
-                },
-                equipmentSlots = setOf(EquipmentSlot.HAND)
-            )
-        )
-
-        /*  ───────── EPIC ───────── */
-        register(
-            GearSpec(
-                id = "lucky_hook",
-                material = Material.TRIPWIRE_HOOK,
-                displayName = "§d[Epic] Lucky Hook",
-                stats = emptyList(),
-                loreBuilder = { _, _ ->
-                    listOf(
-                        "§7Off-Hand Bonus:",
-                        "§e+10% Fish sale price"
-                    )
-                }
-            )
-        )
-
-        /*  ───────── MYTHICAL ───────── */
-        register(
-            GearSpec(
-                id = "willows_rod",
-                material = Material.FISHING_ROD,
-                displayName = "§6[Mythic] Willow’s Rod",
-                stats = emptyList(),
-                loreBuilder = { _, _ ->
-                    listOf(
-                        "§7Ability (§610 %§7):",
-                        "§eInstantly hooks & reels a fish."
-                    )
-                },
-                equipmentSlots = setOf(EquipmentSlot.HAND)
-            )
-        )
-        register(
-            GearSpec(
-                id = "neptune_rod",
-                material = Material.FISHING_ROD,
-                displayName = "§6[Mythic] Rod of Neptune",
-                stats = emptyList(),
-                loreBuilder = { _, _ ->
-                    listOf(
-                        "§7Ability (§65 %§7):",
-                        "§eCatches double loot."
-                    )
-                },
-                equipmentSlots = setOf(EquipmentSlot.HAND)
-            )
-        )
-
-        // register more gear here …
-        // register(GearSpec(id = "bronze_axe", …)
-        // register(GearSpec(id = "iron_helmet", …)
-
-        Bukkit.getLogger().info("[RunicOverlord] Registered ${specs.size} gear types.")
     }
 }

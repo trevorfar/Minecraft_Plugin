@@ -53,7 +53,7 @@ class BarrierWand : Listener {
             return ItemStack(Material.STICK).apply {
                 itemMeta = itemMeta?.apply {
                     setDisplayName("§bBarrier Wand")
-                    addEnchant(Enchantment.INFINITY, 1, true)
+                    addEnchant(Enchantment.INFINITY, 1000, true)
                     addItemFlags(ItemFlag.HIDE_ENCHANTS)
                 }
             }
