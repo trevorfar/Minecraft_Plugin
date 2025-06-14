@@ -1,0 +1,47 @@
+# ── VOUCHER DEFINITIONS ─────────────────────────────────────────────
+vouchers:
+  epic_enchant_upgrade:
+    display-name: "§5Epic Enchant Upgrade Voucher"
+    material: ENCHANTED_BOOK
+    right-clickable: false
+    custom-action: ENCHANT_UPGRADE_EPIC
+    lore:
+      - "§7Drag & drop onto gear to §drandomly §7upgrade"
+      - "§7one enchantment by §d+1§7."
+      - "§8Cannot exceed vanilla max by more than §d+1§8."
+    rarity: LEGENDARY
+    tier: I
+
+  mythic_enchant_upgrade:
+    display-name: "§6Mythic Enchant Upgrade Voucher"
+    material: ENCHANTED_BOOK
+    right-clickable: false
+    custom-action: ENCHANT_UPGRADE_MYTHIC
+    lore:
+      - "§7Drag & drop onto gear to §echoose"
+      - "§7an enchantment and add §e+1§7."
+      - "§8May exceed vanilla max by §e+2§8."
+    rarity: LEGENDARY
+    tier: II
+
+  rune_remover:
+    display-name: "§cRune Remover"
+    material: BRUSH
+    right-clickable: false
+    custom-action: RUNE_REMOVER
+    lore:
+      - "§7Drag onto an item to choose a rune to remove"
+    rarity: COMMON
+    tier: II
+
+  xp:
+    display-name: "§aXP Voucher"
+    material: FIREWORK_STAR
+    lore:
+      - "§7Right-click to redeem"
+      - "§7for 500 XP"
+    reward:
+      type: GIVE_XP
+      amount: 500
+    rarity: COMMON
+    tier: I

@@ -1,15 +1,17 @@
 package com.trevorfarias.runic_overlord.fishing
 
 import com.trevorfarias.runic_overlord.RunicOverlord
-import com.trevorfarias.runic_overlord.fishing.model.*
-import org.bukkit.Bukkit
+import com.trevorfarias.runic_overlord.gear.GearFactory
+import com.trevorfarias.runic_overlord.gear.GearSpec
+import com.trevorfarias.runic_overlord.gear.Rarity
+import com.trevorfarias.runic_overlord.gear.Tier
+import com.trevorfarias.runic_overlord.voucher.VoucherFactory
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Biome
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
-import roll
 import java.io.File
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.pow
@@ -29,7 +31,7 @@ object PriceModel {
         "uncommon" to  350.0,
         "rare"     to 2_000.0,
         "epic"     to 15_000.0,
-        "mythic" to 25_000.0
+        "legendary" to 25_000.0
     )
 }
 
@@ -58,11 +60,49 @@ object FishingConfig {
         loadTables(root)
 
         if ("default" !in tables) {
-            tables["default"] = LootTableSpec(1, null, listOf(FishRewardSpec()))
-        }
+            tables["default"] = LootTableSpec(1, null, listOf(
+                FishRewardSpec(
+                    weight = 1.0,
+                    rarity = Rarity.COMMON,
+                    tier = Tier.I,
+                    category = RewardCategory.JOURNEYMAN
+                )
+            ))        }
     }
 
     fun reload() = load()
+
+    fun allRewardSpecs(): List<RewardSpec> {
+        val fishRewards = fish.map { (_, spec) ->
+            FishRewardSpec(
+                rarity = spec.rarity,
+                tier = spec.tier,
+                category = RewardCategory.forLevel(spec.minLevel)
+            )
+        }
+
+        val gearRewards = GearFactory.getAllSpecs().map { spec ->
+            GearRewardSpec(
+                gearId       = spec.id,
+                unidentified = false,
+                rarity       = spec.rarity,
+                tier         = spec.tier,
+            )
+        }
+
+        val voucherRewards = VoucherFactory.allSpecs().map { s ->
+            VoucherRewardSpec(
+                voucherId = s.id,
+                category  = null,
+                broadcast = false,
+                rarity    = s.rarity,
+                tier      = s.tier
+            )
+        }
+
+
+        return tables.values.flatMap { it.rewards } + fishRewards + gearRewards + voucherRewards
+    }
 
     /* ─────────────────────── load Tiers ──────────────────────────────── */
     private fun loadTiers(root: YamlConfiguration) {
@@ -104,7 +144,9 @@ object FishingConfig {
                 biomes      = s.getStringList("biomes")
                     .mapNotNull { runCatching { Biome.valueOf(it) }.getOrNull() }
                     .toSet(),
-                minLevel    = s.getInt("min-level", 1)
+                minLevel    = s.getInt("min-level", 1),
+                rarity = Rarity.valueOf(s.getString("rarity")!!.uppercase()),
+                tier = Tier.valueOf(s.getString("tier")!!.uppercase()),
             )
 
             /* ── auto-derive baseValue if YAML left it blank ─────────── */
@@ -133,22 +175,19 @@ object FishingConfig {
     fun tableForBiome(biome: Biome): LootTableSpec =
         tables[biome.name()] ?: tables.getValue("default")
 
-    fun randomFishForPlayer(p: Player, biome: Biome): FishSpec? {
-        val lvl  = FishingLevel.FishingLeveling.level(p)
+    fun randomFishForPlayer(
+        p: Player,
+        biome: Biome,
+        rarity: Rarity? = null,
+        tier:   Tier?   = null
+    ): FishSpec? {
+        val lvl = FishingLevel.FishingLeveling.level(p)
+
         return fish.values
             .filter { it.minLevel <= lvl && (it.biomes.isEmpty() || biome in it.biomes) }
+            .filter { rarity == null || it.rarity == rarity }
+            .filter { tier   == null || it.tier   == tier }
             .randomOrNull()
-    }
-
-    fun randomRewardFor(player: Player, table: LootTableSpec): RewardSpec {
-        val lvl          = FishingLevel.FishingLeveling.level(player)
-        val unlockedCats = RewardCategory.unlocked(lvl)
-
-        val eligible = table.rewards.filter { r ->
-            unlockedCats.contains(r.category ?: RewardCategory.JOURNEYMAN)
-        }
-        val safe = if (eligible.isNotEmpty()) eligible else table.rewards
-        return table.copy(rewards = safe).roll()
     }
 
     /* ─────────────────────── YAML → LootTableSpec ───────────────────── */
@@ -163,38 +202,46 @@ object FishingConfig {
                 ?.let { runCatching { RewardCategory.valueOf(it.uppercase()) }.getOrNull() }
                 ?: RewardCategory.JOURNEYMAN
             val bc  = (map["broadcast"] as? Boolean) ?: false
+            val rarity = (map["rarity"] as? String)?.let { Rarity.valueOf(it.uppercase()) } ?: Rarity.COMMON
+            val tier   = (map["tier"]   as? String)?.let { Tier.valueOf(it.uppercase()) }   ?: Tier.I
 
             when ((map["type"] as String).uppercase()) {
                 "FISH" -> FishRewardSpec(
                     weight = (map["weight"] as? Number)?.toDouble() ?: 1.0,
                     category = cat,
-                    broadcast = bc
+                    broadcast = bc,
+                    rarity = rarity,
+                    tier = tier
                 )
                 "RUNE" -> RuneRewardSpec(
                     runeId   = map["id"].toString(),
-                    chance   = (map["chance"] as Number).toDouble(),
                     category = cat,
-                    broadcast = bc
+                    broadcast = bc,
+                    rarity = rarity,
+                    tier = tier
                 )
                 "VOUCHER" -> VoucherRewardSpec(
                     voucherId = map["id"].toString(),
-                    chance    = (map["chance"] as Number).toDouble(),
                     category  = cat,
-                    broadcast = bc
+                    broadcast = bc,
+                    rarity = rarity,
+                    tier = tier
                 )
                 "ITEM" -> ItemRewardSpec(
                     material  = Material.valueOf(map["material"].toString().uppercase()),
                     name      = map["name"] as? String,
                     min       = (map["min"] as? Number)?.toInt() ?: 1,
                     max       = max((map["max"] as? Number)?.toInt() ?: 1, 1),
-                    chance    = (map["chance"] as Number).toDouble(),
                     category  = cat,
-                    broadcast = bc
+                    broadcast = bc,
+                    rarity = rarity,
+                    tier = tier
                 )
                 "GEAR" -> GearRewardSpec(
                     gearId = map["id"].toString(),
-                    chance = (map["chance"] as Number).toDouble(),
-                    unidentified = map["unidentified"] as? Boolean ?: false
+                    unidentified = map["unidentified"] as? Boolean ?: false,
+                    rarity = rarity,
+                    tier = tier
                 )
                 else -> null
             }

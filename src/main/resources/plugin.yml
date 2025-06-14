@@ -38,3 +38,7 @@ commands:
     description: Lists available custom gear
     usage: /li
     permission: runicoverlord.default
+  rofvoucher:
+    description: Reload voucher definitions
+    usage: /<command> reload
+    permission: runicoverlord.admin

@@ -4,6 +4,7 @@ import com.trevorfarias.runic_overlord.RunicOverlord
 import com.trevorfarias.runic_overlord.runes.RuneApplyListener.PendingRuneRemovals
 import com.trevorfarias.runic_overlord.runes.RuneApplyListener.PendingVoucherUse
 import com.trevorfarias.runic_overlord.util.Constants
+import com.trevorfarias.runic_overlord.voucher.RuneGUI.openRuneRemovalGUI
 import com.trevorfarias.runic_overlord.voucher.VoucherFactory
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -50,7 +51,9 @@ object RuneRemoverGuiListener : Listener {
         val runeDisplayName = clickedName.removePrefix("§cRemove: ")
         val targetRune = RuneFactory.getRuneSpecByDisplayName(runeDisplayName) ?: return
 
-        var armor = PendingRuneRemovals.map.remove(player) ?: return
+        val pending = PendingRuneRemovals.map.remove(player) ?: return
+        var armor   = pending.item
+
         val meta = armor.itemMeta ?: return
         val pdc = meta.persistentDataContainer
 
@@ -75,27 +78,46 @@ object RuneRemoverGuiListener : Listener {
             }
         }.joinToString("") + "§8" + "◇".repeat(Constants.MAX_RUNES - runeList.size)
 
-        val cleanedLore = updatedMeta.lore?.filterNot { it.startsWith("§7Runes:") }?.toMutableList() ?: mutableListOf()
+        val cleanedLore = updatedMeta.lore
+            ?.filterNot {
+                it.startsWith("§7Runes:") ||
+                        it.matches(Regex("§[0-9a-fA-F]• .*")) ||
+                        it.matches(Regex("§[0-9a-f]◆+"))
+            }?.toMutableList() ?: mutableListOf()
+
         cleanedLore.add("§7Runes: $visualBar")
+
+        runeList.distinct()
+            .mapNotNull { RuneFactory.getRuneSpecById(it) }
+            .forEach { spec ->
+                val color = when (spec.tier) {
+                    1 -> "§f"; 2 -> "§b"; 3 -> "§3"; else -> "§7"
+                }
+                cleanedLore.add("$color• ${spec.displayName}")
+            }
+
         updatedMeta.lore = cleanedLore
 
         updatedMeta.persistentDataContainer.set(Constants.RUNE_IDS_KEY, PersistentDataType.STRING, runeList.joinToString(","))
         updatedMeta.persistentDataContainer.set(Constants.RUNE_SLOT_KEY, PersistentDataType.INTEGER, runeList.size)
         armor.itemMeta = updatedMeta
 
-        val equipment = player.equipment ?: return
-        targetRune.modifiers.map { it.slot }.distinct().forEach { slot ->
-            when (slot) {
-                EquipmentSlot.HEAD -> equipment.helmet = armor
-                EquipmentSlot.CHEST -> equipment.chestplate = armor
-                EquipmentSlot.LEGS -> equipment.leggings = armor
-                EquipmentSlot.FEET -> equipment.boots = armor
-                else -> {}
+        val eq = player.equipment!!
+        if (pending.equipped) {
+            /* it was already worn – replace the right armour slot */
+            when (pending.slot) {                // Bukkit indices
+                39 -> eq.helmet     = armor      // HEAD
+                38 -> eq.chestplate = armor      // CHEST
+                37 -> eq.leggings   = armor      // LEGS
+                36 -> eq.boots      = armor      // FEET
             }
+        } else {
+            /* it came from the main inventory – put it back there */
+            player.inventory.setItem(pending.slot, armor)
         }
-
-        completedRemovals.add(player.uniqueId)
-        player.closeInventory()
+        player.updateInventory()
+        completedRemovals.add(player.uniqueId)                      // don’t refund voucher
+        player.closeInventory()                                     // close the “Remove a Rune” GUI
         player.sendMessage("§aRemoved ${targetRune.displayName} from your armor.")
     }
 
@@ -122,5 +144,43 @@ object RuneRemoverGuiListener : Listener {
         }
         PendingRuneRemovals.map.remove(event.player)
         completedRemovals.remove(event.player.uniqueId)
+    }
+
+    fun handleRuneDrag(
+        player : Player,
+        armor  : ItemStack,
+        voucher: ItemStack,
+        e      : InventoryClickEvent
+    ): Boolean {
+
+        /* ── 1. check the item actually has runes ─────────────────────────── */
+        val meta = armor.itemMeta ?: return false
+        val runeIds = meta.persistentDataContainer
+            .get(Constants.RUNE_IDS_KEY, PersistentDataType.STRING)
+            ?.split(",")
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
+
+        if (runeIds.isEmpty()) {
+            player.sendMessage("§cThat item has no runes to remove.")
+            return true
+        }
+
+        /* ── 2. remember voucher + armour + where it sat (slot & equipped) ─ */
+        PendingVoucherUse.map[player] = voucher
+
+        val equipped = e.slot in 36..39                // 39-HEAD, 38-CHEST, 37-LEGS, 36-FEET
+        PendingRuneRemovals.map[player] = RuneApplyListener.PendingRemoval(
+            item      = armor,
+            slot      = e.slot,
+            equipped  = equipped
+        )
+
+        /* ── 3. clear cursor & open the removal GUI ───────────────────────── */
+        e.setCursor(ItemStack(Material.AIR))
+        e.isCancelled = true
+        openRuneRemovalGUI(player, armor, runeIds)
+
+        return true
     }
 }

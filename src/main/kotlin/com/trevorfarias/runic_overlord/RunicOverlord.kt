@@ -8,6 +8,8 @@ import com.trevorfarias.runic_overlord.gear.GearFactory
 import com.trevorfarias.runic_overlord.gear.GearGuiCommand
 import com.trevorfarias.runic_overlord.gear.GearReloadCommand
 import com.trevorfarias.runic_overlord.util.VaultUtil
+import com.trevorfarias.runic_overlord.voucher.VoucherFactory
+import com.trevorfarias.runic_overlord.voucher.VoucherReloadCommand
 import org.bukkit.plugin.java.JavaPlugin
 
 class RunicOverlord : JavaPlugin() {
@@ -17,6 +19,9 @@ class RunicOverlord : JavaPlugin() {
         logger.info("Runic Overlord is up and ready!")
         PluginManager.initialize(this)
         FishingConfig.load(this)
+        VoucherFactory.reload(this)
+        GearFactory.reloadFromYML(this)
+
         getCommand("sellfish")?.setExecutor(SellFishCommand())
         getCommand("rofishing")?.setExecutor(FishingAdminCommand())
             ?: logger.severe("COMMAND rofishing not found in plugin.yml")
@@ -26,6 +31,7 @@ class RunicOverlord : JavaPlugin() {
         getCommand("rofgear")?.setExecutor(GearReloadCommand(this))
         getCommand("legendary")?.setExecutor(GearGuiCommand(this))
         getCommand("li")?.setExecutor(GearGuiCommand(this))
+        getCommand("rofvoucher")!!.setExecutor(VoucherReloadCommand(this))
 
         FishingLevel.FishingDataKeys.init(this)
         if (!VaultUtil.setup(this)) {

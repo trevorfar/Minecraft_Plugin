@@ -43,7 +43,6 @@ object RuneLootInjector : Listener {
     fun onLootGenerate(event: LootGenerateEvent) {
         val lootTableKey = event.lootTable.key
         val luck = event.lootContext.luck
-        //event.lootTable.add(com.trevorfarias.runic_overlord.gear.GearFactory.createUnidentified("silver_sword"))
 
         registeredRuneLoots.forEach { spec ->
             // Flatten all targets into all their mapped tables

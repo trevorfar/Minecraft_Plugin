@@ -20,9 +20,14 @@ class RuneApplyListener : Listener {
     object PendingVoucherUse {
         val map: MutableMap<Player, ItemStack> = mutableMapOf()
     }
+    data class PendingRemoval(
+        val item: ItemStack,
+        val slot: Int,          // inventory index or armour-slot index
+        val equipped: Boolean   // true if it was already being worn
+    )
 
     object PendingRuneRemovals {
-        val map = mutableMapOf<Player, ItemStack>()
+        val map = mutableMapOf<Player, PendingRemoval>()
     }
 
     @EventHandler

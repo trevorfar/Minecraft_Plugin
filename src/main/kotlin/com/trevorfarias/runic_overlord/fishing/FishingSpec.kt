@@ -1,5 +1,7 @@
 package com.trevorfarias.runic_overlord.fishing
 
+import com.trevorfarias.runic_overlord.gear.Rarity
+import com.trevorfarias.runic_overlord.gear.Tier
 import org.bukkit.Material
 import org.bukkit.block.Biome
 import java.util.concurrent.ThreadLocalRandom
@@ -12,7 +14,10 @@ data class FishSpec(
     val maxWeight: Double,
     var baseValue: Double,
     val biomes: Set<Biome>,
-    val minLevel: Int = 1
+    val minLevel: Int = 1,
+    val rarity: Rarity,
+    val tier: Tier = Tier.I
+
 ) {
 
     fun randomWeight(minPercent: Double = 0.0): Double {
@@ -34,38 +39,54 @@ data class TierSpec(
     val minWeightPercent: Double = 0.0      // NEW
 
 )
+
+interface RewardTyped {
+    val rarity: Rarity
+    val tier: Tier
+}
+
 sealed interface RewardSpec {
     val category: RewardCategory?
     val broadcast: Boolean
+
 }
 data class FishRewardSpec(
     val weight: Double = 1.0,
     override val category: RewardCategory? = null,
-    override val broadcast: Boolean = false
-) : RewardSpec
+    override val broadcast: Boolean = false,
+    override val rarity: Rarity,
+    override val tier: Tier
+
+) : RewardSpec, RewardTyped
 
 data class RuneRewardSpec(
     val runeId: String,
-    val chance: Double,
     override val category: RewardCategory? = null,
-    override val broadcast: Boolean = false
-) : RewardSpec
+    override val broadcast: Boolean = false,
+    override val rarity: Rarity,
+    override val tier: Tier
+) : RewardSpec, RewardTyped
+
 data class VoucherRewardSpec(
     val voucherId: String,
-    val chance: Double,
     override val category: RewardCategory?,
-    override val broadcast: Boolean = false
+    override val broadcast: Boolean = false,
+    override val rarity: Rarity,
+    override val tier: Tier
     )
-    : RewardSpec
+    : RewardSpec, RewardTyped
+
+
 data class ItemRewardSpec(
     val material: Material,
     val name: String?,
     val min: Int,
     val max: Int,
-    val chance: Double,
     override val category: RewardCategory?,
-    override val broadcast: Boolean = false
-) : RewardSpec
+    override val broadcast: Boolean = false,
+    override val rarity: Rarity,
+    override val tier: Tier
+) : RewardSpec, RewardTyped
 
 data class LootTableSpec(
     val rolls: Int = 1,
@@ -75,8 +96,9 @@ data class LootTableSpec(
 
 data class GearRewardSpec(
     val gearId: String,
-    val chance: Double,
     val unidentified: Boolean = false,   // drop rolled or hidden qualit
     override val category: RewardCategory? = null,
-    override val broadcast: Boolean = false
-) : RewardSpec
+    override val broadcast: Boolean = false,
+    override val rarity: Rarity,
+    override val tier: Tier
+) : RewardSpec, RewardTyped

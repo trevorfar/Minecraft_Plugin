@@ -41,7 +41,7 @@ class EnchantUpgradeVoucherListener : Listener {
     }
 
     /* ── EPIC: random +1 (max +1 over vanilla) ── */
-    private fun handleEpic(p: Player, gear: ItemStack, voucher: ItemStack, e: InventoryClickEvent) {
+    fun handleEpic(p: Player, gear: ItemStack, voucher: ItemStack, e: InventoryClickEvent) {
         val upgradable = gear.itemMeta?.enchants?.filter { (ench, lvl) ->
             lvl < ench.maxLevel + 1
         } ?: emptyMap()
@@ -60,7 +60,7 @@ class EnchantUpgradeVoucherListener : Listener {
     }
 
     /* ── MYTHIC: choose via GUI (max +2) ── */
-    private fun handleMythic(p: Player, gear: ItemStack, voucher: ItemStack, e: InventoryClickEvent) {
+    fun handleMythic(p: Player, gear: ItemStack, voucher: ItemStack, e: InventoryClickEvent) {
         val upgradable = gear.itemMeta?.enchants?.filter { (ench, lvl) ->
             lvl < ench.maxLevel + 2
         } ?: emptyMap()

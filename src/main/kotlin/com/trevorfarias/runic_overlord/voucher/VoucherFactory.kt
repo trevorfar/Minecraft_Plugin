@@ -1,18 +1,22 @@
 package com.trevorfarias.runic_overlord.voucher
 
 import com.trevorfarias.runic_overlord.RunicOverlord
+import com.trevorfarias.runic_overlord.gear.Rarity
+import com.trevorfarias.runic_overlord.gear.Tier
 import com.trevorfarias.runic_overlord.runes.RuneApplyListener
 import com.trevorfarias.runic_overlord.runes.RuneFactory
+import com.trevorfarias.runic_overlord.runes.RuneRemoverGuiListener
 import com.trevorfarias.runic_overlord.util.Constants
-import org.bukkit.Bukkit
-import org.bukkit.Material
-import org.bukkit.NamespacedKey
+import org.bukkit.*
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 
 object RuneGUI {
     fun openRuneRemovalGUI(player: Player, armor: ItemStack, runeIds: List<String>) {
@@ -28,7 +32,6 @@ object RuneGUI {
             gui.setItem(i, item)
         }
 
-        RuneApplyListener.PendingRuneRemovals.map[player] = armor
         Bukkit.getScheduler().runTask(RunicOverlord.instance, Runnable {
             player.setItemOnCursor(ItemStack(Material.AIR))
             player.openInventory(gui)
@@ -36,134 +39,120 @@ object RuneGUI {
     }
 }
 
+/* ───────────────── data classes ───────────────── */
+
 data class VoucherSpec(
     val id: String,
     val displayName: String,
-    val rightClickable: Boolean = true,
-    val lore: List<String>,
     val material: Material,
-    val reward: ((player: Player) -> Unit)? = null,
-    val customAction: ((player: Player, target: ItemStack, cursor: ItemStack, event: InventoryClickEvent) -> Boolean)? = null
+    val lore: List<String>,
+    val rightClickable: Boolean = true,
+    val rewardDef: RewardDef? = null,
+    val customAction: VoucherAction? = null,
+    val rarity: Rarity,
+    val tier: Tier
 )
+typealias VoucherAction =
+            (player: Player, target: ItemStack, cursor: ItemStack, e: InventoryClickEvent) -> Boolean
+
+/** Declarative rewards loaded from YAML. */
+sealed interface RewardDef {
+    data class GiveItem(val item: Material, val amount: Int) : RewardDef
+    data class GiveXP(val amount: Int)                       : RewardDef
+    object TeleportSpawn                                      : RewardDef
+}
+
+/* ───────────────── factory ───────────────── */
 
 object VoucherFactory {
 
-    // Map of all defined vouchers by ID
-    private val voucherRegistry: Map<String, VoucherSpec> = mapOf(
-        "epic_enchant_upgrade" to VoucherSpec(
-            id = "epic_enchant_upgrade",
-            displayName = "§5Epic Enchant Upgrade Voucher",
-            material = Material.ENCHANTED_BOOK,
-            rightClickable = false,
-            lore = listOf(
-                "§7Drag & drop onto gear to §drandomly §7upgrade",
-                "§7one enchantment by §d+1§7.",
-                "§8Cannot exceed vanilla max by more than §d+1§8."
+    private val registry = mutableMapOf<String, VoucherSpec>()
+
+    fun reload(plugin: JavaPlugin = RunicOverlord.instance) = loadFromYml(plugin)
+
+    fun loadFromYml(plugin: JavaPlugin) {
+        registry.clear()
+
+        val file = File(plugin.dataFolder, "vouchers.yml")
+        if (!file.exists()) plugin.saveResource("vouchers.yml", false)
+        val root = YamlConfiguration.loadConfiguration(file)
+        val section = root.getConfigurationSection("vouchers") ?: return
+
+        for (id in section.getKeys(false)) {
+            val s = section.getConfigurationSection(id) ?: continue
+            val actionTag = s.getString("custom-action")?.uppercase()
+
+            val spec = VoucherSpec(
+                id            = id,
+                displayName   = s.getString("display-name")!!,
+                material      = Material.valueOf(s.getString("material")!!.uppercase()),
+                lore          = s.getStringList("lore"),
+                rightClickable= s.getBoolean("right-clickable", true),
+                rewardDef     = parseReward(s.getConfigurationSection("reward")),
+                customAction  = buildCustomAction(actionTag),
+                rarity        = Rarity.valueOf(s.getString("rarity")!!.uppercase()),
+                tier          = Tier.valueOf(s.getString("tier")!!.uppercase())
             )
-        ),
-        "mythic_enchant_upgrade" to VoucherSpec(
-            id = "mythic_enchant_upgrade",
-            displayName = "§6Mythic Enchant Upgrade Voucher",
-            material = Material.ENCHANTED_BOOK,
-            rightClickable = false,
-            lore = listOf(
-                "§7Drag & drop onto gear to §echoose",
-                "§7an enchantment and add §e+1§7.",
-                "§8May exceed vanilla max by §e+2§8."
+            registry[id] = spec
+        }
+        Bukkit.getLogger().info("[RunicOverlord] Loaded ${registry.size} vouchers.")
+    }
+
+    private fun parseReward(sec: org.bukkit.configuration.ConfigurationSection?): RewardDef? {
+        val id = sec?.name                          // node name, e.g. "rare_fishing_boost"
+        val rewardSec = sec?.getConfigurationSection("reward")
+            ?: return null
+
+        val type = rewardSec.getString("type")?.uppercase()
+        if (type == null) {
+            Bukkit.getLogger().severe("Voucher '$id' is missing reward.type")
+            return null
+        }
+
+        if (sec == null) return null
+
+        return when (sec.getString("type")!!.uppercase()) {
+            "GIVE_ITEM"      -> RewardDef.GiveItem(
+                item   = Material.valueOf(sec.getString("item")!!.uppercase()),
+                amount = sec.getInt("amount", 1)
             )
-        ),
-        "diamond" to VoucherSpec(
-            id = "diamond",
-            displayName = "§bDiamond Voucher",
-            lore = listOf("§7Right-click to redeem", "§7for 1 Diamond 💎"),
-            material = Material.FIREWORK_STAR,
-            reward = { player ->
-                player.inventory.addItem(ItemStack(Material.DIAMOND))
-                player.sendMessage("💎 You got a Diamond!")
-            }
-        ),
-        "xp" to VoucherSpec(
-            id = "xp",
-            displayName = "§aXP Voucher",
-            lore = listOf("§7Right-click to redeem", "§7for 500 XP"),
-            material = Material.FIREWORK_STAR,
-            reward = { player ->
-                player.giveExp(500)
-                player.sendMessage("📘 You gained 500 XP!")
-            }
-        ),
-        "teleport" to VoucherSpec(
-            id = "teleport",
-            displayName = "§dTeleport Voucher",
-            lore = listOf("§7Right-click to return to spawn"),
-            material = Material.FIREWORK_STAR,
-            reward = { player ->
-                player.teleport(player.world.spawnLocation)
-                player.sendMessage("🌀 Teleported to spawn!")
-            }
-        ),
-        "rune_remover" to VoucherSpec(
-            id = "rune_remover",
-            displayName = "§cRune Remover",
-            lore = listOf("§7Drag onto an item to choose a rune to remove"),
-            material = Material.BRUSH,
-            rightClickable = false,
-            customAction = { player, armorItem, cursorItem, event ->
-                val cursorMeta = cursorItem.itemMeta ?: return@VoucherSpec false
-                if (!cursorMeta.persistentDataContainer.has(Constants.IS_RUNE_REMOVER, PersistentDataType.BYTE)) return@VoucherSpec false
+            "GIVE_XP"        -> RewardDef.GiveXP(sec.getInt("amount", 0))
+            "TELEPORT_SPAWN" -> RewardDef.TeleportSpawn
 
-                val armorMeta = armorItem.itemMeta ?: return@VoucherSpec false
-                val pdc = armorMeta.persistentDataContainer
-                val runeIds = pdc.get(Constants.RUNE_IDS_KEY, PersistentDataType.STRING)
-                    ?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+            else -> null
+        }
+    }
+    private fun buildCustomAction(tag: String?): VoucherAction? = when (tag) {
+        "RUNE_REMOVER" -> { player, gear, voucher, e ->
+            /* reuse your original body that was in RuneRemoverGuiListener */
+            RuneRemoverGuiListener.handleRuneDrag(player, gear, voucher, e)
+        }
+        // you can add more tags later:
+        // "SOME_FUTURE_CUSTOM" -> { p, g, v, e -> … }
+        else -> null
+    }
 
-                if (runeIds.isEmpty()) {
-                    player.sendMessage("§eThis armor has no runes.")
-                    return@VoucherSpec true
-                }
-
-                RuneApplyListener.PendingVoucherUse.map[player] = cursorItem.clone()
-                RuneApplyListener.PendingRuneRemovals.map[player] = armorItem.clone()
-                RuneGUI.openRuneRemovalGUI(player, armorItem.clone(), runeIds)
-                event.isCancelled = true
-                return@VoucherSpec true
-            }
-
-        )
-
-        //FIXES:
-        //Refund remover, stop removing other item in inventory
-
-    )
-
-    // Returns an ItemStack representing the given voucher
+    /* ───────── create ItemStack ───────── */
     fun createVoucher(id: String): ItemStack? {
-        val spec = voucherRegistry[id] ?: return null
-
+        val spec = registry[id] ?: return null
         val item = ItemStack(spec.material)
         val meta = item.itemMeta ?: return item
-
         meta.setDisplayName(spec.displayName)
         meta.lore = spec.lore
-        meta.addEnchant(Enchantment.INFINITY, 1000, true)
+        meta.addEnchant(Enchantment.INFINITY, 1, true)
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
-
-        if (id == "rune_remover") {
-            val key = NamespacedKey(RunicOverlord.instance, "is_rune_remover")
-            meta.persistentDataContainer.set(key, PersistentDataType.BYTE, 1)
-        }
 
         item.itemMeta = meta
         return item
     }
 
-
-
-    // Matches an ItemStack to a VoucherSpec
+    /* ───────── lookup helpers ───────── */
     fun matchVoucher(item: ItemStack): VoucherSpec? {
         val meta = item.itemMeta ?: return null
-        return voucherRegistry.values.firstOrNull {
+        return registry.values.firstOrNull {
             meta.displayName == it.displayName && meta.lore == it.lore
         }
     }
+
+    fun allSpecs(): Collection<VoucherSpec> = registry.values
 }

@@ -15,6 +15,7 @@ object Constants {
     const val NEPTUNE_CHANCE = 0.5 //0.05
     const val WILLOWS_CHANCE = 0.1 // 0.1
 
+
 }
 
 

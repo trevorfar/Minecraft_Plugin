@@ -2,10 +2,7 @@
 package com.trevorfarias.runic_overlord.gear
 
 import org.bukkit.Material
-import org.bukkit.attribute.Attribute
-import org.bukkit.attribute.AttributeModifier
 import org.bukkit.inventory.EquipmentSlot
-import java.util.*
 
 /* GearSpec.kt */
 data class GearSpec(
@@ -18,6 +15,6 @@ data class GearSpec(
     val locationTags: List<String> = emptyList(),
     val rarity: Rarity = Rarity.COMMON,
     val abilityBaseChance: Double = 0.0,
-)
+    val tier: Tier = Tier.I)
 
 

@@ -22,7 +22,13 @@ class VoucherUseListener : Listener {
 
         event.isCancelled = true
         consumeOneItem(player, item)
-        spec.reward?.let { it(player) }
+        spec.rewardDef?.let { rd ->
+            when (rd) {
+                is RewardDef.GiveItem -> player.inventory.addItem(ItemStack(rd.item, rd.amount))
+                is RewardDef.GiveXP   -> player.giveExp(rd.amount)
+                is RewardDef.TeleportSpawn -> player.teleport(player.world.spawnLocation)
+            }
+        }
         player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f)
     }
 
