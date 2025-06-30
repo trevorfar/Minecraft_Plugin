@@ -11,6 +11,8 @@ object Constants {
     val GEAR_QUALITY_KEY  = NamespacedKey(RunicOverlord.instance, "gear_quality")
     val GEAR_IDENTIFIED_KEY = NamespacedKey(RunicOverlord.instance, "gear_identified")
     val IDENTIFIER_KEY = NamespacedKey(RunicOverlord.instance, "is_identifier")
+    val GEAR_SOCKET_COUNT_KEY =
+        NamespacedKey(RunicOverlord.instance, "gear_socket_cnt")
     const val MAX_RUNES = 3
     const val NEPTUNE_CHANCE = 0.5 //0.05
     const val WILLOWS_CHANCE = 0.1 // 0.1

@@ -5,12 +5,16 @@ import com.trevorfarias.runic_overlord.crafting.RemainsCraftingListener
 import com.trevorfarias.runic_overlord.fishing.CustomFishingGearListener
 import com.trevorfarias.runic_overlord.fishing.CustomFishingListener
 import com.trevorfarias.runic_overlord.fishing.FishGuttingListener
+import com.trevorfarias.runic_overlord.gear.CustomGearListener
+import com.trevorfarias.runic_overlord.gear.GearProtectionListener
 import com.trevorfarias.runic_overlord.identifier.IdentifierUseListener
 import com.trevorfarias.runic_overlord.listeners.BarrierWand
 import com.trevorfarias.runic_overlord.listeners.RtpListener
 import com.trevorfarias.runic_overlord.listeners.SandBreakListener
 import com.trevorfarias.runic_overlord.runes.*
 import com.trevorfarias.runic_overlord.voucher.EnchantUpgradeVoucherListener
+import com.trevorfarias.runic_overlord.voucher.QualityRerollVoucherListener
+import com.trevorfarias.runic_overlord.voucher.VoucherActionListener
 import com.trevorfarias.runic_overlord.voucher.VoucherUseListener
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
@@ -22,7 +26,7 @@ object PluginManager {
         plugin.logger.info("Initializing Runic Overlord systems...")
 
         register(plugin, SandBreakListener())
-        register(plugin, VoucherUseListener())
+        register(plugin, VoucherActionListener)
         register(plugin, RuneApplyListener())
         register(plugin, RuneEffectListener())
         register(plugin, RuneRemoverGuiListener)
@@ -34,15 +38,13 @@ object PluginManager {
         register(plugin, IdentifierUseListener())
         register(plugin, CustomFishingListener<Any>())
         register(plugin, CustomFishingGearListener())
+        register(plugin, GearProtectionListener)
+        register(plugin, CustomGearListener)
+        register(plugin, QualityRerollVoucherListener())
+        register(plugin, VoucherUseListener())
+
 
         register(plugin, EnchantUpgradeVoucherListener())
-
-
-
-
-
-
-        plugin.getCommand("givecustom")?.setExecutor(CustomItemCommand())
     }
 
     fun shutdown(plugin: RunicOverlord) {

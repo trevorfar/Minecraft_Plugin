@@ -38,7 +38,16 @@ commands:
     description: Lists available custom gear
     usage: /li
     permission: runicoverlord.default
+    aliases: [legendary, legendarys]
+  voucher:
+    description: Lists available vouchers
+    usage: /voucher
+    permission: runicoverlord.default
+    aliases: [v, vi, vl]
   rofvoucher:
     description: Reload voucher definitions
     usage: /<command> reload
     permission: runicoverlord.admin
+  roftest:
+    description: Gear testing and management
+    usage: /roftest test <gear_id>

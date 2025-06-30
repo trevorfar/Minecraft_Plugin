@@ -26,6 +26,7 @@ data class RuneDef(
 
 object RuneFactory {
     private val runes = mutableMapOf<String, RuneSpec>()
+    fun allIds(): Collection<String> = runes.keys
 
 
     fun getRuneSpecById(id: String): RuneSpec? = runes[id]

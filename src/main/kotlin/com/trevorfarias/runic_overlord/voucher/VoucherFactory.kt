@@ -1,6 +1,7 @@
 package com.trevorfarias.runic_overlord.voucher
 
 import com.trevorfarias.runic_overlord.RunicOverlord
+import com.trevorfarias.runic_overlord.gear.GearSpec
 import com.trevorfarias.runic_overlord.gear.Rarity
 import com.trevorfarias.runic_overlord.gear.Tier
 import com.trevorfarias.runic_overlord.runes.RuneApplyListener
@@ -17,6 +18,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
+import java.util.concurrent.ThreadLocalRandom
 
 object RuneGUI {
     fun openRuneRemovalGUI(player: Player, armor: ItemStack, runeIds: List<String>) {
@@ -53,7 +55,10 @@ data class VoucherSpec(
     val tier: Tier
 )
 typealias VoucherAction =
-            (player: Player, target: ItemStack, cursor: ItemStack, e: InventoryClickEvent) -> Boolean
+            (player: Player,
+             target: ItemStack,
+             cursor: ItemStack,
+             e: InventoryClickEvent?) -> Boolean   //  ← “?” here
 
 /** Declarative rewards loaded from YAML. */
 sealed interface RewardDef {
@@ -67,6 +72,10 @@ sealed interface RewardDef {
 object VoucherFactory {
 
     private val registry = mutableMapOf<String, VoucherSpec>()
+    fun allIds(): Collection<String> = registry.keys
+
+    private val specs = mutableMapOf<String, VoucherSpec>()
+    private val rng   = ThreadLocalRandom.current()
 
     fun reload(plugin: JavaPlugin = RunicOverlord.instance) = loadFromYml(plugin)
 
@@ -122,15 +131,8 @@ object VoucherFactory {
             else -> null
         }
     }
-    private fun buildCustomAction(tag: String?): VoucherAction? = when (tag) {
-        "RUNE_REMOVER" -> { player, gear, voucher, e ->
-            /* reuse your original body that was in RuneRemoverGuiListener */
-            RuneRemoverGuiListener.handleRuneDrag(player, gear, voucher, e)
-        }
-        // you can add more tags later:
-        // "SOME_FUTURE_CUSTOM" -> { p, g, v, e -> … }
-        else -> null
-    }
+    private fun buildCustomAction(tag: String?): VoucherAction? =
+        VoucherActions.byTag(tag)
 
     /* ───────── create ItemStack ───────── */
     fun createVoucher(id: String): ItemStack? {

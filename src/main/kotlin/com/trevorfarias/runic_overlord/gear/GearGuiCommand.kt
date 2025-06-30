@@ -25,6 +25,11 @@ class GearGuiCommand(private val plugin: JavaPlugin) : CommandExecutor, Listener
     // Opens the gear showcase GUI
     private fun openGearGui(player: Player) {
         val allSpecs = GearFactory.getAllSpecs() // Implement this to return a list of all GearSpecs
+        .sortedWith(
+            compareBy<GearSpec> { it.rarity.weight }          // 1 = LEGENDARY … 60 = COMMON
+                .thenByDescending { it.tier }                 // III before II before I
+                .thenBy { it.displayName.lowercase() }
+        )
         val guiSize = ((allSpecs.size + 8) / 9) * 9 // Round up to nearest multiple of 9 (Bukkit GUIs must be multiples of 9)
         val gui = Bukkit.createInventory(null, guiSize, "§3All Custom Gear")
 
@@ -36,7 +41,6 @@ class GearGuiCommand(private val plugin: JavaPlugin) : CommandExecutor, Listener
 
         player.openInventory(gui)
 
-        // Optionally, you can listen for inventory clicks to prevent taking items:
         Bukkit.getPluginManager().registerEvents(object : Listener {
             @org.bukkit.event.EventHandler
             fun onInvClick(e: InventoryClickEvent) {

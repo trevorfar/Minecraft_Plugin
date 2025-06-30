@@ -65,7 +65,7 @@ object FishingRewards {
 
     /* Quick helper for Willow’s Rod */
     fun instantCatch(p: Player, biome: Biome) {
-        val caught = giveFish(p, biome) ?: return
+        giveFish(p, biome) ?: return
         p.sendMessage("§aWillow’s Rod reels in a fish instantly!")
         p.playSound(p.location, Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.4f)
     }

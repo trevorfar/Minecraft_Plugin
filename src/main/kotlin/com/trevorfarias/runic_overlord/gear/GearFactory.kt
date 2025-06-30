@@ -1,10 +1,8 @@
 package com.trevorfarias.runic_overlord.gear
 
-import com.trevorfarias.runic_overlord.gear.GearFactory.getSpec
 import com.trevorfarias.runic_overlord.gear.QualityScale.colour
 import com.trevorfarias.runic_overlord.util.Constants
 import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
@@ -21,6 +19,8 @@ import java.util.concurrent.ThreadLocalRandom
 object GearFactory {
     private val specs = mutableMapOf<String, GearSpec>()
     private val rng = ThreadLocalRandom.current()
+
+    fun allIds(): Collection<String> = specs.keys
 
     var locationTagPrettyNames: Map<String, String> = emptyMap()
     fun getAllSpecs() = specs.values.toList()
@@ -75,7 +75,7 @@ object GearFactory {
                 stats = stats,
                 loreBuilder = { pct, r ->
                     val abilityPct = abilityBaseChance * (pct / 100.0)
-                    val coloured = "${r.colour().toLegacy()}${"%.1f".format(abilityPct)}"
+                    val coloured = "§r${r.colour().toLegacy()}${"%.1f".format(abilityPct)}§7"
                     val lore = loreList.map { line ->
                         line.replace("<rarity_colour>", r.colour().toLegacy())
                             .replace("<rarity_name>", r.name.lowercase().replaceFirstChar { it.titlecase() })
@@ -107,6 +107,7 @@ object GearFactory {
 
     fun createUnidentified(id: String) = create(id, -1)
 
+    fun getSpecById(id: String): GearSpec? = specs[id]
 
 
     // ---- core -------------------------------------------------------------

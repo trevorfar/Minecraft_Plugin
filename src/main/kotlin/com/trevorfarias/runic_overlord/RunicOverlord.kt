@@ -1,5 +1,6 @@
 package com.trevorfarias.runic_overlord
 
+import com.trevorfarias.runic_overlord.commands.CustomItemCommand
 import com.trevorfarias.runic_overlord.fishing.CustomFishingListener
 import com.trevorfarias.runic_overlord.fishing.FishingConfig
 import com.trevorfarias.runic_overlord.fishing.FishingLevel
@@ -7,8 +8,10 @@ import com.trevorfarias.runic_overlord.fishing.commands.*
 import com.trevorfarias.runic_overlord.gear.GearFactory
 import com.trevorfarias.runic_overlord.gear.GearGuiCommand
 import com.trevorfarias.runic_overlord.gear.GearReloadCommand
+import com.trevorfarias.runic_overlord.gear.GearTestCommand
 import com.trevorfarias.runic_overlord.util.VaultUtil
 import com.trevorfarias.runic_overlord.voucher.VoucherFactory
+import com.trevorfarias.runic_overlord.voucher.VoucherGuiCommand
 import com.trevorfarias.runic_overlord.voucher.VoucherReloadCommand
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -22,6 +25,11 @@ class RunicOverlord : JavaPlugin() {
         VoucherFactory.reload(this)
         GearFactory.reloadFromYML(this)
 
+        getCommand("givecustom")?.apply {
+            val handler = CustomItemCommand()
+            setExecutor(handler)
+            tabCompleter = handler           // same instance good for both
+        }
         getCommand("sellfish")?.setExecutor(SellFishCommand())
         getCommand("rofishing")?.setExecutor(FishingAdminCommand())
             ?: logger.severe("COMMAND rofishing not found in plugin.yml")
@@ -31,7 +39,10 @@ class RunicOverlord : JavaPlugin() {
         getCommand("rofgear")?.setExecutor(GearReloadCommand(this))
         getCommand("legendary")?.setExecutor(GearGuiCommand(this))
         getCommand("li")?.setExecutor(GearGuiCommand(this))
-        getCommand("rofvoucher")!!.setExecutor(VoucherReloadCommand(this))
+        getCommand("rofvoucher")?.setExecutor(VoucherReloadCommand(this))
+        getCommand("voucher")?.setExecutor(VoucherGuiCommand(this))
+        getCommand("roftest")?.setExecutor(GearTestCommand(this))
+
 
         FishingLevel.FishingDataKeys.init(this)
         if (!VaultUtil.setup(this)) {
