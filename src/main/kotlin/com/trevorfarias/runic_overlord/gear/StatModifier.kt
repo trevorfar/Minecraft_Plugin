@@ -8,7 +8,9 @@ import org.bukkit.inventory.meta.ItemMeta
 import java.util.*
 
 sealed interface StatModifier {
-    fun apply(item: org.bukkit.inventory.meta.ItemMeta, qualityPct: Int)
+    fun apply(item: ItemMeta, qualityPct: Int)
+    fun remove(item: ItemMeta)
+
 }
 
 
@@ -20,7 +22,9 @@ data class AttributeStat(
     val op: AttributeModifier.Operation = AttributeModifier.Operation.ADD_NUMBER,
     val uuidSeed: String = UUID.randomUUID().toString()
 ) : StatModifier {
-
+    override fun remove(item: ItemMeta) {
+        item.removeAttributeModifier(attribute)
+    }
     override fun apply(item: ItemMeta, qualityPct: Int) {
         val value = min + (max - min) * (qualityPct / 100.0)
         val modifier = AttributeModifier(
@@ -39,6 +43,9 @@ data class EnchantStat(
     val minLvl: Int,
     val maxLvl: Int
 ) : StatModifier {
+    override fun remove(item: ItemMeta) {
+        item.removeEnchant(enchant)
+    }
     override fun apply(item: org.bukkit.inventory.meta.ItemMeta, qualityPct: Int) {
         val lvl = (minLvl + (maxLvl - minLvl) * (qualityPct / 100.0)).toInt().coerceAtLeast(1)
         item.addEnchant(enchant, lvl, true)
@@ -48,7 +55,9 @@ data class EnchantStat(
 data class UnbreakableStat(
     val alwaysTrue: Boolean = true         // <- satisfies the rule
 ) : StatModifier {
-
+    override fun remove(item: ItemMeta) {
+        item.isUnbreakable = false
+    }
     override fun apply(item: ItemMeta, qualityPct: Int) {
         item.isUnbreakable = true
     }

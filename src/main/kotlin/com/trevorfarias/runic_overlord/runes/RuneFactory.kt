@@ -1,12 +1,15 @@
 package com.trevorfarias.runic_overlord.runes
 
 import com.trevorfarias.runic_overlord.RunicOverlord
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import java.util.*
@@ -66,8 +69,8 @@ object RuneFactory {
 
         meta.setDisplayName(rune.displayName)
         meta.lore = rune.lore
-        meta.addEnchant(org.bukkit.enchantments.Enchantment.INFINITY, 1, true)
-        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS)
+        meta.addEnchant(Enchantment.INFINITY, 1, true)
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
 
         val key = NamespacedKey(RunicOverlord.instance, "rune_id")
         meta.persistentDataContainer.set(key, PersistentDataType.STRING, id)
@@ -87,8 +90,9 @@ object RuneFactory {
         applyModifier: (ItemStack) -> ItemStack,
         removeModifier: (ItemStack) -> ItemStack,
         validSlots: List<EquipmentSlot> = listOf(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET), // default: all
+        uuids: Map<EquipmentSlot, UUID>
     ) {
-        runes[id] = RuneSpec(id, displayName, tier, material, modifiers, validSlots, lore, applyModifier, removeModifier)
+        runes[id] = RuneSpec(id, displayName, tier, material, modifiers, validSlots, lore, applyModifier, removeModifier, uuids)
     }
 
     private fun toRoman(tier: Int): String = when (tier) {
@@ -142,6 +146,7 @@ object RuneFactory {
                 material = def.material,
                 modifiers = modifiers,
                 lore = lore,
+                uuids = uuids,
                 validSlots = def.slot,
                 applyModifier = { item ->
                     item.clone().apply {
@@ -156,31 +161,68 @@ object RuneFactory {
                                 def.attribute,
                                 AttributeModifier(
                                     uuid,
-                                    "$runeId${def.tier}_$slot",
+                                    "rune_${runeId}_${slot.name}",
                                     def.amount * def.tier,
                                     AttributeModifier.Operation.ADD_NUMBER,
                                     slot
                                 )
                             )
                         }
-                        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES)
+                        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
                         itemMeta = meta
                     }
                 },
                 removeModifier = { item ->
-                    item.clone().apply {
-                        val meta = itemMeta ?: return@apply
-                        def.slot.forEach { slot ->
-                            val uuid = uuids[slot]!!
-                            meta.getAttributeModifiers(def.attribute)
-                                ?.filter { it.uniqueId == uuid }
-                                ?.forEach { meta.removeAttributeModifier(def.attribute, it) }
+                    val clone = item.clone()
+                    val meta = clone.itemMeta ?: return@register clone
+
+                    Bukkit.getLogger().info("🔍 [Rune Remove] BEGIN for $runeId")
+
+                    def.slot.forEach { slot ->
+                        val uuid = uuids[slot] ?: return@forEach
+                        val allMods = meta.getAttributeModifiers(def.attribute) ?: return@forEach
+
+                        // Print before
+                        allMods.forEach {
+                            Bukkit.getLogger().info("→ Before: ${it.name} (${it.uniqueId})")
                         }
-                        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES)
-                        itemMeta = meta
+
+                        // Remove all modifiers for that attribute
+                        meta.removeAttributeModifier(def.attribute)
+
+                        // Restore any unrelated modifiers (not ours)
+                        allMods
+                            .filterNot { it.uniqueId == uuid }
+                            .forEach {
+                                meta.addAttributeModifier(def.attribute, it)
+                                Bukkit.getLogger().info("↩️ Preserved unrelated modifier: ${it.name}")
+                            }
+
+                        Bukkit.getLogger().info("✅ Removed rune modifier with UUID: $uuid")
+                        val key = NamespacedKey(RunicOverlord.instance, "rune_id")
+                        val currentId = meta.persistentDataContainer.get(key, PersistentDataType.STRING)
+                        if (currentId == runeId) {
+                            meta.persistentDataContainer.remove(key)
+                        }
+                    }
+
+                    meta.removeItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES)
+                    clone.itemMeta = meta
+
+                    // Final confirmation
+                    val finalMods = meta.attributeModifiers
+                    if (finalMods == null || finalMods.isEmpty()) {
+                        Bukkit.getLogger().info("✅ Post-removal: No modifiers remain")
+                    } else {
+                        finalMods.forEach { attr, mod ->
+                            Bukkit.getLogger().info("📌 Post-removal: $attr → ${mod.name} (${mod.uniqueId})")
+                        }
 
                     }
+
+                    return@register clone
                 }
+
 
             )
         }

@@ -1,6 +1,8 @@
 package com.trevorfarias.runic_overlord.runes
 
 import com.trevorfarias.runic_overlord.RunicOverlord
+import com.trevorfarias.runic_overlord.util.Constants
+import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
@@ -58,8 +60,18 @@ class RuneEffectListener : Listener {
         ).forEach { (slot, item) ->
             if (item == null || item.type.isAir) return@forEach
 
-            val rune = RuneFactory.getRuneSpecFromItem(item) ?: return@forEach
-            val modified = rune.applyModifier(item.clone())
+            val pdc = item.itemMeta?.persistentDataContainer ?: return@forEach
+            val runeIdsRaw = pdc.get(Constants.RUNE_IDS_KEY, org.bukkit.persistence.PersistentDataType.STRING)
+            val runeIds = runeIdsRaw?.split(",")?.filter { it.isNotBlank() } ?: return@forEach
+
+            if (runeIds.isEmpty()) return@forEach
+
+            var modified = item.clone()
+            for (runeId in runeIds) {
+                val rune = RuneFactory.getRuneSpecById(runeId) ?: continue
+                modified = rune.applyModifier(modified)
+            }
+
             equipment.setItem(slot, modified)
         }
     }

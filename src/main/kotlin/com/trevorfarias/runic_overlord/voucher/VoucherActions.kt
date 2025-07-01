@@ -68,16 +68,20 @@ object VoucherActions {
     }
 
     fun rerollQualityEpic():VoucherAction = { p, gear, voucher, e ->
-        if (gear.type.isAir || GearFactory.getSpec(gear) == null) {
-            p.sendMessage("§cThat item isn’t Runic Overlord gear.");
+        if (!gear.type.isAir || GearFactory.getSpec(gear) != null) {
+
+            gear.itemMeta?.let { m ->
+                m.attributeModifiers?.keys()?.forEach { m.removeAttributeModifier(it) }; gear.itemMeta = m
+            }
+            val q = GearFactory.rollQuality()
+            GearFactory.markIdentified(gear, q)
+            consumeOne(voucher, p); if (e != null) {
+                e.isCancelled = true
+            }
+            p.sendMessage("§5[Quality]§a rerolled to §d$q%§a!"); true
+        }else {
+            p.sendMessage("§cThat item isn’t Runic Overlord gear."); false
         }
-        gear.itemMeta?.let { m -> m.attributeModifiers?.keys()?.forEach { m.removeAttributeModifier(it) }; gear.itemMeta = m }
-        val q = GearFactory.rollQuality()
-        GearFactory.markIdentified(gear, q)
-        consumeOne(voucher, p); if (e != null) {
-        e.isCancelled = true
-        }
-        p.sendMessage("§5[Quality]§a rerolled to §d$q%§a!"); true
     }
 
     /* -------------------------------------------------------------------- */
@@ -164,7 +168,6 @@ object VoucherActions {
  */
 object VoucherActionListener : Listener {
 
-    /* ------------ Drag‑and‑drop onto another item ---------------------- */
     @EventHandler
     fun onDrag(e: InventoryClickEvent) {
         val p       = e.whoClicked as? Player ?: return

@@ -49,7 +49,6 @@ object RuneRemoverGuiListener : Listener {
         if (!clickedName.startsWith("§cRemove: ")) return
 
         val runeDisplayName = clickedName.removePrefix("§cRemove: ")
-        val targetRune = RuneFactory.getRuneSpecByDisplayName(runeDisplayName) ?: return
 
         val pending = PendingRuneRemovals.map.remove(player) ?: return
         var armor   = pending.item
@@ -59,6 +58,12 @@ object RuneRemoverGuiListener : Listener {
 
         val runeList = pdc.get(Constants.RUNE_IDS_KEY, PersistentDataType.STRING)
             ?.split(",")?.filter { it.isNotBlank() }?.toMutableList() ?: return
+
+        val targetRuneId = runeList.firstOrNull {
+            RuneFactory.getRuneSpecById(it)?.displayName == runeDisplayName
+        } ?: return
+
+        val targetRune = RuneFactory.getRuneSpecById(targetRuneId) ?: return
 
         if (!runeList.remove(targetRune.id)) {
             player.sendMessage("§cThat rune is no longer applied.")
@@ -103,6 +108,7 @@ object RuneRemoverGuiListener : Listener {
         armor.itemMeta = updatedMeta
 
         val eq = player.equipment!!
+
         if (pending.equipped) {
             /* it was already worn – replace the right armour slot */
             when (pending.slot) {                // Bukkit indices

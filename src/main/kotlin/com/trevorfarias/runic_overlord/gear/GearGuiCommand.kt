@@ -27,7 +27,7 @@ class GearGuiCommand(private val plugin: JavaPlugin) : CommandExecutor, Listener
         val allSpecs = GearFactory.getAllSpecs() // Implement this to return a list of all GearSpecs
         .sortedWith(
             compareBy<GearSpec> { it.rarity.weight }          // 1 = LEGENDARY … 60 = COMMON
-                .thenByDescending { it.tier }                 // III before II before I
+                .thenByDescending { it.tier }.reversed()                 // III before II before I
                 .thenBy { it.displayName.lowercase() }
         )
         val guiSize = ((allSpecs.size + 8) / 9) * 9 // Round up to nearest multiple of 9 (Bukkit GUIs must be multiples of 9)
